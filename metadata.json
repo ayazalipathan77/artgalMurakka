@@ -1,0 +1,7 @@
+{
+  "name": "Muraqqa - Contemporary Pakistani Art",
+  "description": "A high-end digital gallery featuring authentic artworks from Pakistan, equipped with AI curation and AR visualization.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
