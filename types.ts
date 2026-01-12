@@ -1,3 +1,4 @@
+
 export enum UserRole {
   GUEST = 'GUEST',
   USER = 'USER',
@@ -36,6 +37,7 @@ export interface Review {
   rating: number; // 1-5
   comment: string;
   date: string;
+  userId?: string;
 }
 
 export interface Artwork {
@@ -102,4 +104,34 @@ export interface Artist {
   bio: string;
   imageUrl: string;
   specialty: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: 'WATCH' | 'LISTEN' | 'LEARN';
+  description: string;
+  date: string;
+  location?: string;
+  duration?: string;
+  thumbnailUrl: string;
+  videoId: string; // YouTube ID
+}
+
+export interface SocialLinks {
+  instagram: string;
+  facebook: string;
+  twitter: string;
+  pinterest: string;
+}
+
+export interface SiteContent {
+  heroTitle: string;
+  heroSubtitle: string;
+  socialLinks: SocialLinks;
+  socialApiKeys: {
+    facebookAppId?: string;
+    instagramClientId?: string;
+  };
 }

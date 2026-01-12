@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Menu, ShoppingBag, User as UserIcon, Search, Globe, X, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -43,6 +44,9 @@ export const Navbar: React.FC<NavbarProps> = ({ lang, setLang }) => {
             </Link>
             <Link to="/exhibitions" className="text-stone-300 hover:text-amber-450 transition-colors font-medium text-xs tracking-[0.15em] uppercase">
               {UI_TEXT[lang].nav.exhibitions}
+            </Link>
+            <Link to="/conversations" className="text-stone-300 hover:text-amber-450 transition-colors font-medium text-xs tracking-[0.15em] uppercase">
+              {UI_TEXT[lang].nav.conversations}
             </Link>
           </div>
 
@@ -96,6 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang, setLang }) => {
             <Link to="/gallery" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.gallery}</Link>
             <Link to="/artists" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.artists}</Link>
             <Link to="/exhibitions" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.exhibitions}</Link>
+            <Link to="/conversations" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.conversations}</Link>
             <div className="pt-8 border-t border-stone-800">
                <p className="text-stone-500 text-sm mb-2">Select Currency</p>
                <div className="flex gap-4">

@@ -1,26 +1,40 @@
+
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, Package, Users, DollarSign, Settings, 
-  Plus, Edit, Trash2, Truck, CreditCard, Check, X, Search 
+  Plus, Edit, Trash2, Truck, CreditCard, Check, X, Search, 
+  Video, Globe, MessageSquare, Save, Facebook, Instagram
 } from 'lucide-react';
 import { useGallery } from '../context/GalleryContext';
 import { useCurrency } from '../App';
-import { OrderStatus, Artwork } from '../types';
+import { OrderStatus, Artwork, Conversation } from '../types';
 
 export const AdminDashboard: React.FC = () => {
   const { 
-    artworks, orders, shippingConfig, totalRevenue, stripeConnected,
-    addArtwork, updateArtwork, deleteArtwork, updateOrderStatus, updateShippingConfig, connectStripe 
+    artworks, orders, shippingConfig, totalRevenue, stripeConnected, conversations, siteContent,
+    addArtwork, updateArtwork, deleteArtwork, updateOrderStatus, updateShippingConfig, connectStripe,
+    addConversation, deleteConversation, updateSiteContent
   } = useGallery();
   const { convertPrice } = useCurrency();
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'INVENTORY' | 'ORDERS' | 'SHIPPING' | 'FINANCE'>('OVERVIEW');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'INVENTORY' | 'ORDERS' | 'SHIPPING' | 'FINANCE' | 'CONTENT'>('OVERVIEW');
 
-  // Local State for forms
+  // Local State for Artworks
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newArtwork, setNewArtwork] = useState<Partial<Artwork>>({
     title: '', artistName: '', price: 0, category: 'Abstract', medium: '', inStock: true
   });
+  
+  // Local State for Conversations
+  const [isConvModalOpen, setIsConvModalOpen] = useState(false);
+  const [newConv, setNewConv] = useState<Partial<Conversation>>({
+    title: '', subtitle: '', category: 'WATCH', description: '', videoId: '', duration: '', location: ''
+  });
+
+  // Local State for Order Tracking
   const [trackingInput, setTrackingInput] = useState<{id: string, code: string} | null>(null);
+
+  // Content form states
+  const [heroForm, setHeroForm] = useState(siteContent);
 
   const handleAddArtwork = () => {
     if (!newArtwork.title || !newArtwork.price) return;
@@ -36,21 +50,38 @@ export const AdminDashboard: React.FC = () => {
     setNewArtwork({ title: '', artistName: '', price: 0, category: 'Abstract', medium: '', inStock: true });
   };
 
+  const handleAddConversation = () => {
+    if (!newConv.title || !newConv.videoId) return;
+    addConversation({
+      ...newConv,
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      thumbnailUrl: `https://picsum.photos/800/500?random=${Date.now()}`
+    } as Conversation);
+    setIsConvModalOpen(false);
+    setNewConv({ title: '', subtitle: '', category: 'WATCH', description: '', videoId: '', duration: '', location: '' });
+  };
+
+  const handleSaveContent = () => {
+    updateSiteContent(heroForm);
+    alert('Site content updated successfully!');
+  };
+
   return (
     <div className="pt-24 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen pb-12">
       
       {/* Header */}
-      <div className="flex justify-between items-center mb-8 border-b border-stone-800 pb-6">
+      <div className="flex justify-between items-center mb-8 border-b border-stone-800 pb-6 overflow-x-auto">
         <div>
            <h1 className="text-3xl font-serif text-white">Gallery Management</h1>
            <p className="text-stone-500 text-sm mt-1">Administrator Portal</p>
         </div>
-        <div className="flex gap-4">
-           {['OVERVIEW', 'INVENTORY', 'ORDERS', 'SHIPPING', 'FINANCE'].map(tab => (
+        <div className="flex gap-2">
+           {['OVERVIEW', 'INVENTORY', 'ORDERS', 'SHIPPING', 'FINANCE', 'CONTENT'].map(tab => (
               <button 
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
-                className={`text-xs font-bold px-4 py-2 rounded-full transition-colors ${activeTab === tab ? 'bg-amber-600 text-white' : 'bg-stone-900 text-stone-400 hover:text-white'}`}
+                className={`text-xs font-bold px-4 py-2 rounded-full transition-colors whitespace-nowrap ${activeTab === tab ? 'bg-amber-600 text-white' : 'bg-stone-900 text-stone-400 hover:text-white'}`}
               >
                 {tab}
               </button>
@@ -104,6 +135,173 @@ export const AdminDashboard: React.FC = () => {
               </div>
            </div>
         </div>
+      )}
+
+      {/* CONTENT TAB */}
+      {activeTab === 'CONTENT' && (
+         <div className="space-y-12 animate-fade-in">
+            
+            {/* Conversations Section */}
+            <div>
+               <div className="flex justify-between items-center mb-6">
+                  <div>
+                     <h3 className="text-xl text-white font-serif flex items-center gap-2"><Video size={20} className="text-amber-500"/> Conversations</h3>
+                     <p className="text-stone-500 text-xs">Manage artist talks and video content.</p>
+                  </div>
+                  <button onClick={() => setIsConvModalOpen(true)} className="bg-stone-800 text-white px-4 py-2 text-sm flex items-center gap-2 hover:bg-stone-700">
+                     <Plus size={16} /> Add Video
+                  </button>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {conversations.map(conv => (
+                     <div key={conv.id} className="bg-stone-900 border border-stone-800 p-4 relative group">
+                        <button onClick={() => deleteConversation(conv.id)} className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                           <Trash2 size={14}/>
+                        </button>
+                        <div className="aspect-video bg-black mb-3">
+                           <img src={conv.thumbnailUrl} className="w-full h-full object-cover opacity-60" />
+                        </div>
+                        <h4 className="text-white font-serif text-lg leading-tight mb-1">{conv.title}</h4>
+                        <p className="text-stone-500 text-xs uppercase mb-2">{conv.category}</p>
+                        <p className="text-stone-400 text-xs line-clamp-2">{conv.description}</p>
+                     </div>
+                  ))}
+               </div>
+
+               {/* Add Conversation Modal */}
+               {isConvModalOpen && (
+                  <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+                     <div className="bg-stone-900 border border-stone-700 p-6 w-full max-w-lg space-y-4">
+                        <h3 className="text-white text-xl">Add New Conversation</h3>
+                        <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="Title" value={newConv.title} onChange={e => setNewConv({...newConv, title: e.target.value})} />
+                        <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="Subtitle" value={newConv.subtitle} onChange={e => setNewConv({...newConv, subtitle: e.target.value})} />
+                        <div className="grid grid-cols-2 gap-4">
+                           <select className="w-full bg-stone-950 border border-stone-700 p-2 text-white" value={newConv.category} onChange={e => setNewConv({...newConv, category: e.target.value as any})}>
+                              <option value="WATCH">Watch</option>
+                              <option value="LISTEN">Listen</option>
+                              <option value="LEARN">Learn</option>
+                           </select>
+                           <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="Duration (e.g. 10:25)" value={newConv.duration} onChange={e => setNewConv({...newConv, duration: e.target.value})} />
+                        </div>
+                        <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="YouTube Video ID" value={newConv.videoId} onChange={e => setNewConv({...newConv, videoId: e.target.value})} />
+                        <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="Location" value={newConv.location} onChange={e => setNewConv({...newConv, location: e.target.value})} />
+                        <textarea className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="Description" rows={3} value={newConv.description} onChange={e => setNewConv({...newConv, description: e.target.value})} />
+                        
+                        <div className="flex gap-2 pt-2">
+                           <button onClick={handleAddConversation} className="flex-1 bg-amber-600 py-2 text-white">Add Content</button>
+                           <button onClick={() => setIsConvModalOpen(false)} className="flex-1 bg-stone-800 py-2 text-white">Cancel</button>
+                        </div>
+                     </div>
+                  </div>
+               )}
+            </div>
+
+            <div className="border-t border-stone-800 pt-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
+               {/* Site Content Form */}
+               <div className="space-y-6">
+                  <h3 className="text-xl text-white font-serif flex items-center gap-2"><Globe size={20} className="text-amber-500"/> Front Page Content</h3>
+                  <div className="bg-stone-900 border border-stone-800 p-6 space-y-4">
+                     <div>
+                        <label className="block text-stone-500 text-xs uppercase mb-1">Hero Title</label>
+                        <input 
+                           type="text" 
+                           value={heroForm.heroTitle} 
+                           onChange={e => setHeroForm({...heroForm, heroTitle: e.target.value})}
+                           className="w-full bg-stone-950 border border-stone-700 p-3 text-white"
+                        />
+                     </div>
+                     <div>
+                        <label className="block text-stone-500 text-xs uppercase mb-1">Hero Subtitle</label>
+                        <input 
+                           type="text" 
+                           value={heroForm.heroSubtitle} 
+                           onChange={e => setHeroForm({...heroForm, heroSubtitle: e.target.value})}
+                           className="w-full bg-stone-950 border border-stone-700 p-3 text-white"
+                        />
+                     </div>
+                     <button onClick={handleSaveContent} className="bg-amber-600 text-white px-6 py-2 text-sm flex items-center gap-2 hover:bg-amber-500">
+                        <Save size={16} /> Save Changes
+                     </button>
+                  </div>
+               </div>
+
+               {/* Social Media Form */}
+               <div className="space-y-6">
+                  <h3 className="text-xl text-white font-serif flex items-center gap-2"><MessageSquare size={20} className="text-amber-500"/> Social Media & Connectivity</h3>
+                  <div className="bg-stone-900 border border-stone-800 p-6 space-y-4">
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-stone-500 text-xs uppercase mb-1">Instagram URL</label>
+                           <input 
+                              type="text" 
+                              value={heroForm.socialLinks.instagram} 
+                              onChange={e => setHeroForm({...heroForm, socialLinks: {...heroForm.socialLinks, instagram: e.target.value}})}
+                              className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-xs"
+                           />
+                        </div>
+                        <div>
+                           <label className="block text-stone-500 text-xs uppercase mb-1">Facebook URL</label>
+                           <input 
+                              type="text" 
+                              value={heroForm.socialLinks.facebook} 
+                              onChange={e => setHeroForm({...heroForm, socialLinks: {...heroForm.socialLinks, facebook: e.target.value}})}
+                              className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-xs"
+                           />
+                        </div>
+                        <div>
+                           <label className="block text-stone-500 text-xs uppercase mb-1">Twitter URL</label>
+                           <input 
+                              type="text" 
+                              value={heroForm.socialLinks.twitter} 
+                              onChange={e => setHeroForm({...heroForm, socialLinks: {...heroForm.socialLinks, twitter: e.target.value}})}
+                              className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-xs"
+                           />
+                        </div>
+                        <div>
+                           <label className="block text-stone-500 text-xs uppercase mb-1">Pinterest URL</label>
+                           <input 
+                              type="text" 
+                              value={heroForm.socialLinks.pinterest} 
+                              onChange={e => setHeroForm({...heroForm, socialLinks: {...heroForm.socialLinks, pinterest: e.target.value}})}
+                              className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-xs"
+                           />
+                        </div>
+                     </div>
+                     
+                     <div className="pt-4 border-t border-stone-800">
+                        <h4 className="text-white text-sm font-bold mb-3">API Credentials</h4>
+                        <div className="space-y-3">
+                           <div>
+                              <label className="block text-stone-500 text-xs uppercase mb-1">Facebook App ID</label>
+                              <input 
+                                 type="password" 
+                                 placeholder="APP-ID-123456"
+                                 value={heroForm.socialApiKeys?.facebookAppId || ''} 
+                                 onChange={e => setHeroForm({...heroForm, socialApiKeys: {...heroForm.socialApiKeys, facebookAppId: e.target.value}})}
+                                 className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-xs font-mono"
+                              />
+                           </div>
+                           <div>
+                              <label className="block text-stone-500 text-xs uppercase mb-1">Instagram Client ID</label>
+                              <input 
+                                 type="password" 
+                                 placeholder="CLIENT-ID-7890"
+                                 value={heroForm.socialApiKeys?.instagramClientId || ''} 
+                                 onChange={e => setHeroForm({...heroForm, socialApiKeys: {...heroForm.socialApiKeys, instagramClientId: e.target.value}})}
+                                 className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-xs font-mono"
+                              />
+                           </div>
+                        </div>
+                     </div>
+
+                     <button onClick={handleSaveContent} className="bg-amber-600 text-white px-6 py-2 text-sm flex items-center gap-2 hover:bg-amber-500 w-full justify-center">
+                        <Save size={16} /> Save Connectivity Settings
+                     </button>
+                  </div>
+               </div>
+            </div>
+         </div>
       )}
 
       {/* INVENTORY TAB */}

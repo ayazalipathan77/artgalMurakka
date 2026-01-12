@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
@@ -11,11 +12,12 @@ import { UserProfile } from './pages/UserProfile';
 import { Auth } from './pages/Auth';
 import { Exhibitions } from './pages/Exhibitions';
 import { Artists } from './pages/Artists';
-import { InvoiceView } from './pages/InvoiceView'; // Import
+import { Conversations } from './pages/Conversations';
+import { InvoiceView } from './pages/InvoiceView';
 import { AICurator } from './components/AICurator';
 import { CartItem, Currency } from './types';
 import { RATES } from './constants';
-import { GalleryProvider } from './context/GalleryContext';
+import { GalleryProvider, useGallery } from './context/GalleryContext';
 
 // Currency Context
 interface CurrencyContextType {
@@ -54,6 +56,40 @@ const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
     window.scrollTo(0, 0);
   }, [location]);
   return <>{children}</>;
+};
+
+// Footer Component to access context properly
+const Footer: React.FC = () => {
+  const { siteContent } = useGallery();
+  
+  return (
+    <footer className="bg-stone-950 border-t border-stone-900 py-12 px-4 text-center">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
+          <div>
+            <h4 className="font-serif text-xl text-amber-500 mb-4">MURAQQA</h4>
+            <p className="text-stone-500 text-sm">Elevating Pakistani Art to the global stage.</p>
+          </div>
+          <div>
+            <h4 className="font-serif text-white mb-4">Explore</h4>
+            <ul className="text-stone-500 text-sm space-y-2">
+              <li>Authenticity</li>
+              <li>Virtual Tours</li>
+              <li>Artists</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-serif text-white mb-4">Contact</h4>
+            <p className="text-stone-500 text-sm">Lahore • Karachi • Islamabad • London</p>
+            <p className="text-stone-500 text-sm mb-4">support@muraqqa.art</p>
+            <div className="flex gap-4">
+              {siteContent.socialLinks.instagram && <a href={siteContent.socialLinks.instagram} className="text-stone-600 hover:text-white text-xs uppercase">Instagram</a>}
+              {siteContent.socialLinks.facebook && <a href={siteContent.socialLinks.facebook} className="text-stone-600 hover:text-white text-xs uppercase">Facebook</a>}
+            </div>
+          </div>
+      </div>
+      <p className="text-stone-700 text-xs mt-8 border-t border-stone-900 pt-8">© 2024 Muraqqa Gallery. All rights reserved.</p>
+    </footer>
+  );
 };
 
 const App: React.FC = () => {
@@ -97,6 +133,7 @@ const App: React.FC = () => {
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/artists" element={<Artists />} />
                     <Route path="/exhibitions" element={<Exhibitions />} />
+                    <Route path="/conversations" element={<Conversations />} />
                     <Route path="/artwork/:id" element={<ArtworkDetail />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/auth" element={<Auth />} />
@@ -106,28 +143,7 @@ const App: React.FC = () => {
                     <Route path="/invoice/:id" element={<InvoiceView />} />
                   </Routes>
                 </main>
-                <footer className="bg-stone-950 border-t border-stone-900 py-12 px-4 text-center">
-                  <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
-                     <div>
-                        <h4 className="font-serif text-xl text-amber-500 mb-4">MURAQQA</h4>
-                        <p className="text-stone-500 text-sm">Elevating Pakistani Art to the global stage.</p>
-                     </div>
-                     <div>
-                        <h4 className="font-serif text-white mb-4">Explore</h4>
-                        <ul className="text-stone-500 text-sm space-y-2">
-                          <li>Authenticity</li>
-                          <li>Virtual Tours</li>
-                          <li>Artists</li>
-                        </ul>
-                     </div>
-                     <div>
-                        <h4 className="font-serif text-white mb-4">Contact</h4>
-                        <p className="text-stone-500 text-sm">Lahore • Karachi • Islamabad • London</p>
-                        <p className="text-stone-500 text-sm">support@muraqqa.art</p>
-                     </div>
-                  </div>
-                  <p className="text-stone-700 text-xs mt-8 border-t border-stone-900 pt-8">© 2024 Muraqqa Gallery. All rights reserved.</p>
-                </footer>
+                <Footer />
                 <AICurator />
               </div>
             </Layout>

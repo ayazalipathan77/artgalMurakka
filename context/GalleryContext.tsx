@@ -1,11 +1,14 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Artwork, Order, ShippingConfig, OrderStatus } from '../types';
-import { MOCK_ARTWORKS } from '../constants';
+import { Artwork, Order, ShippingConfig, OrderStatus, Conversation, SiteContent } from '../types';
+import { MOCK_ARTWORKS, MOCK_CONVERSATIONS, DEFAULT_SITE_CONTENT } from '../constants';
 
 interface GalleryContextType {
   artworks: Artwork[];
   orders: Order[];
   shippingConfig: ShippingConfig;
+  conversations: Conversation[];
+  siteContent: SiteContent;
   
   // Inventory Actions
   addArtwork: (art: Artwork) => void;
@@ -18,6 +21,11 @@ interface GalleryContextType {
   
   // Settings Actions
   updateShippingConfig: (config: Partial<ShippingConfig>) => void;
+  updateSiteContent: (content: Partial<SiteContent>) => void;
+
+  // Conversation Actions
+  addConversation: (conv: Conversation) => void;
+  deleteConversation: (id: string) => void;
   
   // Financials (Mock)
   stripeConnected: boolean;
@@ -70,6 +78,10 @@ export const GalleryProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   ]);
 
+  // --- Content State ---
+  const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
+  const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
+
   // --- Settings State ---
   const [shippingConfig, setShippingConfig] = useState<ShippingConfig>({
     domesticRate: 500,
@@ -107,6 +119,18 @@ export const GalleryProvider: React.FC<{ children: ReactNode }> = ({ children })
     setShippingConfig(prev => ({ ...prev, ...config }));
   };
 
+  const updateSiteContent = (content: Partial<SiteContent>) => {
+    setSiteContent(prev => ({ ...prev, ...content }));
+  };
+
+  const addConversation = (conv: Conversation) => {
+    setConversations(prev => [conv, ...prev]);
+  };
+
+  const deleteConversation = (id: string) => {
+    setConversations(prev => prev.filter(c => c.id !== id));
+  };
+
   const connectStripe = () => {
     // Simulate connection
     setTimeout(() => setStripeConnected(true), 1500);
@@ -119,12 +143,17 @@ export const GalleryProvider: React.FC<{ children: ReactNode }> = ({ children })
       artworks,
       orders,
       shippingConfig,
+      conversations,
+      siteContent,
       addArtwork,
       updateArtwork,
       deleteArtwork,
       addOrder,
       updateOrderStatus,
       updateShippingConfig,
+      updateSiteContent,
+      addConversation,
+      deleteConversation,
       stripeConnected,
       connectStripe,
       totalRevenue

@@ -1,4 +1,5 @@
-import { Artwork, Artist, Exhibition } from './types';
+
+import { Artwork, Artist, Exhibition, Conversation, SiteContent } from './types';
 
 export const RATES = {
   PKR: 1,
@@ -16,6 +17,108 @@ export const MOCK_EXHIBITIONS: Exhibition[] = [
   { id: 'e1', title: 'Voices of the Indus', date: 'Oct 15 - Nov 30, 2024', location: 'Lahore Gallery', isVirtual: true, imageUrl: 'https://picsum.photos/800/400?random=20', description: 'A journey through the river\'s history.' },
   { id: 'e2', title: 'Urban Chaos', date: 'Dec 01 - Dec 20, 2024', location: 'Karachi Arts Council', isVirtual: false, imageUrl: 'https://picsum.photos/800/400?random=21', description: 'The raw energy of Karachi captured in oil.' }
 ];
+
+export const MOCK_CONVERSATIONS: Conversation[] = [
+  {
+    id: 'c1',
+    title: 'Christian Marclay',
+    subtitle: 'The art of sound and visual collage',
+    category: 'WATCH',
+    description: 'An in-depth look at Marclay\'s pioneering work in sound art and his recent exhibition at the White Cube.',
+    date: 'Oct 12, 2024',
+    location: 'London',
+    duration: '14:20',
+    thumbnailUrl: 'https://picsum.photos/800/500?random=100',
+    videoId: 'dQw4w9WgXcQ'
+  },
+  {
+    id: 'c2',
+    title: 'Sophie Calle & Jeffrey Fraenkel',
+    subtitle: 'Lightning Round: Seven questions for the artist',
+    category: 'WATCH',
+    description: 'A candid conversation about her recent work, loss, and the nature of memory.',
+    date: 'Sep 28, 2024',
+    location: 'Paris',
+    duration: '08:45',
+    thumbnailUrl: 'https://picsum.photos/800/500?random=101',
+    videoId: 'dQw4w9WgXcQ'
+  },
+  {
+    id: 'c3',
+    title: 'Peter Hujar',
+    subtitle: 'Interviewed by David Wojnarowicz',
+    category: 'LISTEN',
+    description: 'Archival audio of two legends discussing art, photography, and the value of existence in 1980s New York.',
+    date: 'Aug 15, 2024',
+    location: 'New York (Archive)',
+    duration: '45:00',
+    thumbnailUrl: 'https://picsum.photos/800/500?random=102',
+    videoId: 'dQw4w9WgXcQ'
+  },
+  {
+    id: 'c4',
+    title: 'Richard Misrach',
+    subtitle: 'In Conversation with Jeffrey Fraenkel',
+    category: 'WATCH',
+    description: 'Discussing the "Border Cantos" series and the intersection of politics and landscape photography.',
+    date: 'Jul 10, 2024',
+    location: 'San Francisco',
+    duration: '22:15',
+    thumbnailUrl: 'https://picsum.photos/800/500?random=103',
+    videoId: 'dQw4w9WgXcQ'
+  },
+  {
+    id: 'c5',
+    title: 'Diane Arbus',
+    subtitle: 'Talk Art Podcast',
+    category: 'LISTEN',
+    description: 'Curators explore the myth and reality of Arbus’s most iconic photographs.',
+    date: 'Jun 05, 2024',
+    location: 'Podcast',
+    duration: '55:30',
+    thumbnailUrl: 'https://picsum.photos/800/500?random=104',
+    videoId: 'dQw4w9WgXcQ'
+  },
+  {
+    id: 'c6',
+    title: 'Liz Deschenes',
+    subtitle: 'In conversation with curator Phil Taylor',
+    category: 'WATCH',
+    description: 'Exploring camera-less photography and the materiality of the medium.',
+    date: 'May 20, 2024',
+    location: 'Boston',
+    duration: '18:00',
+    thumbnailUrl: 'https://picsum.photos/800/500?random=105',
+    videoId: 'dQw4w9WgXcQ'
+  },
+   {
+    id: 'c7',
+    title: 'Katy Grannan',
+    subtitle: 'Art in the Twenty-First Century',
+    category: 'LEARN',
+    description: 'A deep dive into portraiture and the relationship between photographer and subject on the streets of California.',
+    date: 'Apr 12, 2024',
+    location: 'Los Angeles',
+    duration: '12:45',
+    thumbnailUrl: 'https://picsum.photos/800/500?random=106',
+    videoId: 'dQw4w9WgXcQ'
+  }
+];
+
+export const DEFAULT_SITE_CONTENT: SiteContent = {
+  heroTitle: 'The Soul of Pakistani Art',
+  heroSubtitle: 'Curated. Authentic. Timeless.',
+  socialLinks: {
+    instagram: 'https://instagram.com',
+    facebook: 'https://facebook.com',
+    twitter: 'https://twitter.com',
+    pinterest: 'https://pinterest.com'
+  },
+  socialApiKeys: {
+    facebookAppId: '',
+    instagramClientId: ''
+  }
+};
 
 export const MOCK_ARTWORKS: Artwork[] = [
   {
@@ -104,12 +207,12 @@ export const MOCK_ARTWORKS: Artwork[] = [
 
 export const UI_TEXT = {
   EN: {
-    nav: { gallery: 'Gallery', artists: 'Artists', exhibitions: 'Exhibitions', about: 'About', login: 'Login' },
+    nav: { gallery: 'Gallery', artists: 'Artists', exhibitions: 'Exhibitions', conversations: 'Conversations', about: 'About', login: 'Login' },
     hero: { title: 'The Soul of Pakistani Art', subtitle: 'Curated. Authentic. Timeless.' },
     cart: { title: 'Your Collection' }
   },
   UR: {
-    nav: { gallery: 'گیلری', artists: 'فنکار', exhibitions: 'نمائش', about: 'ہمارے بارے میں', login: 'لاگ ان' },
+    nav: { gallery: 'گیلری', artists: 'فنکار', exhibitions: 'نمائش', conversations: 'گفتگو', about: 'ہمارے بارے میں', login: 'لاگ ان' },
     hero: { title: 'پاکستانی فن کی روح', subtitle: 'منتخب۔ مستند۔ لازوال۔' },
     cart: { title: 'آپ کا مجموعہ' }
   }

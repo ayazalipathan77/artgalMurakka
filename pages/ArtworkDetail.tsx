@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MOCK_ARTWORKS } from '../constants';
 import { useCart, useCurrency } from '../App';
 import { ARView } from '../components/ARView';
@@ -20,7 +20,17 @@ export const ArtworkDetail: React.FC = () => {
   
   const artwork = MOCK_ARTWORKS.find(a => a.id === id);
 
-  if (!artwork) return <div className="pt-32 text-center">Artwork not found</div>;
+  // Scroll to top when ID changes (in case Layout wrapper doesn't catch it immediately or for smooth UX within same route)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  if (!artwork) return <div className="pt-32 text-center text-stone-500">Artwork not found</div>;
+
+  const relatedArtworks = MOCK_ARTWORKS.filter(art => 
+    art.id !== id && 
+    (art.category === artwork.category || art.artistName === artwork.artistName)
+  ).slice(0, 3);
 
   const calculatePrice = () => {
     if (purchaseType === 'ORIGINAL') return artwork.price;
@@ -194,6 +204,37 @@ export const ArtworkDetail: React.FC = () => {
             <p className="text-stone-600 italic">No reviews yet. Be the first to collect and review.</p>
          )}
       </div>
+
+      {/* Related Artworks */}
+      {relatedArtworks.length > 0 && (
+         <div className="mt-24 border-t border-stone-800 pt-12">
+            <div className="flex justify-between items-end mb-8">
+               <h3 className="font-serif text-3xl text-stone-200">You May Also Like</h3>
+               <Link to="/gallery" className="text-amber-500 text-sm uppercase hover:underline">View Collection</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+               {relatedArtworks.map((art) => (
+                  <Link key={art.id} to={`/artwork/${art.id}`} className="group block bg-stone-900/50 hover:bg-stone-900 transition-colors">
+                     <div className="aspect-[3/4] overflow-hidden relative mb-4">
+                        <img 
+                           src={art.imageUrl} 
+                           alt={art.title} 
+                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute top-3 right-3 bg-stone-950/80 backdrop-blur px-2 py-1 text-[10px] text-white uppercase">
+                           {art.category}
+                        </div>
+                     </div>
+                     <div className="p-4 pt-0">
+                        <h4 className="font-serif text-xl text-stone-200 group-hover:text-amber-500 transition-colors truncate">{art.title}</h4>
+                        <p className="text-stone-500 text-xs uppercase tracking-widest mt-1 mb-2">{art.artistName}</p>
+                        <p className="text-stone-300 font-mono text-sm">{convertPrice(art.price)}</p>
+                     </div>
+                  </Link>
+               ))}
+            </div>
+         </div>
+      )}
     </div>
   );
 };

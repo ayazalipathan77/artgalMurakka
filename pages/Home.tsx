@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Instagram, Facebook, Twitter, Clock, Monitor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MOCK_ARTWORKS, MOCK_EXHIBITIONS, UI_TEXT } from '../constants';
 import { useCurrency } from '../App';
+import { useGallery } from '../context/GalleryContext';
 
 interface HomeProps {
   lang: 'EN' | 'UR';
@@ -11,6 +13,7 @@ interface HomeProps {
 
 export const Home: React.FC<HomeProps> = ({ lang }) => {
   const { convertPrice } = useCurrency();
+  const { siteContent } = useGallery();
   const auctionItem = MOCK_ARTWORKS.find(a => a.isAuction);
 
   return (
@@ -34,7 +37,7 @@ export const Home: React.FC<HomeProps> = ({ lang }) => {
             transition={{ duration: 1.2, ease: "easeOut" }}
             className="font-serif text-5xl md:text-7xl lg:text-9xl text-stone-100 mb-8 font-thin tracking-wide"
           >
-            {UI_TEXT[lang].hero.title}
+            {siteContent.heroTitle}
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}
@@ -42,7 +45,7 @@ export const Home: React.FC<HomeProps> = ({ lang }) => {
             transition={{ delay: 0.8, duration: 1 }}
             className="text-amber-500 text-sm md:text-xl font-light tracking-[0.3em] uppercase mb-12"
           >
-            {UI_TEXT[lang].hero.subtitle}
+            {siteContent.heroSubtitle}
           </motion.p>
           <motion.div
              initial={{ opacity: 0, y: 20 }}
@@ -153,10 +156,10 @@ export const Home: React.FC<HomeProps> = ({ lang }) => {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="font-serif text-3xl mb-8">Follow Our Journey</h2>
           <div className="flex justify-center gap-8 mb-12 text-stone-500">
-            <Instagram className="hover:text-amber-500 cursor-pointer transition-colors" />
-            <Facebook className="hover:text-amber-500 cursor-pointer transition-colors" />
-            <Twitter className="hover:text-amber-500 cursor-pointer transition-colors" />
-            <span className="font-serif italic hover:text-amber-500 cursor-pointer">Pinterest</span>
+            <a href={siteContent.socialLinks.instagram} target="_blank" rel="noopener noreferrer"><Instagram className="hover:text-amber-500 cursor-pointer transition-colors" /></a>
+            <a href={siteContent.socialLinks.facebook} target="_blank" rel="noopener noreferrer"><Facebook className="hover:text-amber-500 cursor-pointer transition-colors" /></a>
+            <a href={siteContent.socialLinks.twitter} target="_blank" rel="noopener noreferrer"><Twitter className="hover:text-amber-500 cursor-pointer transition-colors" /></a>
+            <a href={siteContent.socialLinks.pinterest} target="_blank" rel="noopener noreferrer"><span className="font-serif italic hover:text-amber-500 cursor-pointer">Pinterest</span></a>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
              {[1,2,3,4].map(i => (
