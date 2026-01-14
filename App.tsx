@@ -61,31 +61,31 @@ const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
 // Footer Component to access context properly
 const Footer: React.FC = () => {
   const { siteContent } = useGallery();
-  
+
   return (
     <footer className="bg-stone-950 border-t border-stone-900 py-12 px-4 text-center">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
-          <div>
-            <h4 className="font-serif text-xl text-amber-500 mb-4">MURAQQA</h4>
-            <p className="text-stone-500 text-sm">Elevating Pakistani Art to the global stage.</p>
+        <div>
+          <h4 className="font-serif text-xl text-amber-500 mb-4">MURAQQA</h4>
+          <p className="text-stone-500 text-sm">Elevating Pakistani Art to the global stage.</p>
+        </div>
+        <div>
+          <h4 className="font-serif text-white mb-4">Explore</h4>
+          <ul className="text-stone-500 text-sm space-y-2">
+            <li>Authenticity</li>
+            <li>Virtual Tours</li>
+            <li>Artists</li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-serif text-white mb-4">Contact</h4>
+          <p className="text-stone-500 text-sm">Lahore • Karachi • Islamabad • London</p>
+          <p className="text-stone-500 text-sm mb-4">support@muraqqa.art</p>
+          <div className="flex gap-4">
+            {siteContent.socialLinks.instagram && <a href={siteContent.socialLinks.instagram} className="text-stone-600 hover:text-white text-xs uppercase">Instagram</a>}
+            {siteContent.socialLinks.facebook && <a href={siteContent.socialLinks.facebook} className="text-stone-600 hover:text-white text-xs uppercase">Facebook</a>}
           </div>
-          <div>
-            <h4 className="font-serif text-white mb-4">Explore</h4>
-            <ul className="text-stone-500 text-sm space-y-2">
-              <li>Authenticity</li>
-              <li>Virtual Tours</li>
-              <li>Artists</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-serif text-white mb-4">Contact</h4>
-            <p className="text-stone-500 text-sm">Lahore • Karachi • Islamabad • London</p>
-            <p className="text-stone-500 text-sm mb-4">support@muraqqa.art</p>
-            <div className="flex gap-4">
-              {siteContent.socialLinks.instagram && <a href={siteContent.socialLinks.instagram} className="text-stone-600 hover:text-white text-xs uppercase">Instagram</a>}
-              {siteContent.socialLinks.facebook && <a href={siteContent.socialLinks.facebook} className="text-stone-600 hover:text-white text-xs uppercase">Facebook</a>}
-            </div>
-          </div>
+        </div>
       </div>
       <p className="text-stone-700 text-xs mt-8 border-t border-stone-900 pt-8">© 2024 Muraqqa Gallery. All rights reserved.</p>
     </footer>
@@ -93,6 +93,7 @@ const Footer: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  console.log('App component rendering');
   const [lang, setLang] = useState<'EN' | 'UR'>('EN');
   const [currency, setCurrency] = useState<Currency>(Currency.PKR);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -116,7 +117,7 @@ const App: React.FC = () => {
   const removeFromCart = (id: string) => {
     setCart(cart.filter(item => item.id !== id));
   };
-  
+
   const clearCart = () => setCart([]);
 
   return (
