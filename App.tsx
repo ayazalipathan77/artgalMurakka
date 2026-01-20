@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Home } from './pages/Home';
 import { Gallery } from './pages/Gallery';
@@ -18,6 +18,7 @@ import { AICurator } from './components/AICurator';
 import { CartItem, Currency } from './types';
 import { RATES } from './constants';
 import { GalleryProvider, useGallery } from './context/GalleryContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Currency Context
 interface CurrencyContextType {
@@ -55,6 +56,26 @@ const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
+  return <>{children}</>;
+};
+
+// Protected Route Component
+interface ProtectedRouteProps {
+  children: ReactNode;
+  requiredRole?: 'ADMIN' | 'ARTIST' | 'USER';
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+  const { token, user } = useAuth();
+
+  if (!token) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+
   return <>{children}</>;
 };
 
@@ -121,37 +142,39 @@ const App: React.FC = () => {
   const clearCart = () => setCart([]);
 
   return (
-    <GalleryProvider>
-      <CurrencyContext.Provider value={{ currency, setCurrency, convertPrice, rawConvert }}>
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
-          <HashRouter>
-            <Layout>
-              <div className="bg-stone-950 min-h-screen text-stone-200 selection:bg-amber-900 selection:text-white flex flex-col font-sans">
-                <Navbar lang={lang} setLang={setLang} />
-                <main className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<Home lang={lang} />} />
-                    <Route path="/gallery" element={<Gallery />} />
-                    <Route path="/artists" element={<Artists />} />
-                    <Route path="/exhibitions" element={<Exhibitions />} />
-                    <Route path="/conversations" element={<Conversations />} />
-                    <Route path="/artwork/:id" element={<ArtworkDetail />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="/artist-dashboard" element={<ArtistDashboard />} />
-                    <Route path="/profile" element={<UserProfile />} />
-                    <Route path="/invoice/:id" element={<InvoiceView />} />
-                  </Routes>
-                </main>
-                <Footer />
-                <AICurator />
-              </div>
-            </Layout>
-          </HashRouter>
-        </CartContext.Provider>
-      </CurrencyContext.Provider>
-    </GalleryProvider>
+    <AuthProvider>
+      <GalleryProvider>
+        <CurrencyContext.Provider value={{ currency, setCurrency, convertPrice, rawConvert }}>
+          <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+            <HashRouter>
+              <Layout>
+                <div className="bg-stone-950 min-h-screen text-stone-200 selection:bg-amber-900 selection:text-white flex flex-col font-sans">
+                  <Navbar lang={lang} setLang={setLang} />
+                  <main className="flex-grow">
+                    <Routes>
+                      <Route path="/" element={<Home lang={lang} />} />
+                      <Route path="/gallery" element={<Gallery />} />
+                      <Route path="/artists" element={<Artists />} />
+                      <Route path="/exhibitions" element={<Exhibitions />} />
+                      <Route path="/conversations" element={<Conversations />} />
+                      <Route path="/artwork/:id" element={<ArtworkDetail />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/admin" element={<ProtectedRoute requiredRole="ADMIN"><AdminDashboard /></ProtectedRoute>} />
+                      <Route path="/artist-dashboard" element={<ProtectedRoute requiredRole="ARTIST"><ArtistDashboard /></ProtectedRoute>} />
+                      <Route path="/profile" element={<ProtectedRoute requiredRole="USER"><UserProfile /></ProtectedRoute>} />
+                      <Route path="/invoice/:id" element={<InvoiceView />} />
+                    </Routes>
+                  </main>
+                  <Footer />
+                  <AICurator />
+                </div>
+              </Layout>
+            </HashRouter>
+          </CartContext.Provider>
+        </CurrencyContext.Provider>
+      </GalleryProvider>
+    </AuthProvider>
   );
 };
 

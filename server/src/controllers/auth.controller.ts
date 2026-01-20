@@ -142,15 +142,6 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
             include: {
                 artistProfile: true,
             },
-            select: {
-                id: true,
-                email: true,
-                fullName: true,
-                role: true,
-                phoneNumber: true,
-                createdAt: true,
-                artistProfile: true,
-            },
         });
 
         if (!user) {
