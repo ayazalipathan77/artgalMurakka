@@ -139,9 +139,6 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
 
         const user = await prisma.user.findUnique({
             where: { id: req.user.userId },
-            include: {
-                artistProfile: true,
-            },
             select: {
                 id: true,
                 email: true,
