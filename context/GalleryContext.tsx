@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Artwork, Order, ShippingConfig, OrderStatus, Conversation, SiteContent } from '../types';
 import { MOCK_CONVERSATIONS, DEFAULT_SITE_CONTENT } from '../constants';
-import { artworkApi, transformArtwork, ArtworkFilters } from '../services/api';
+import { artworkApi, transformArtwork, ArtworkFilters, adminApi, settingsApi, conversationApi } from '../services/api';
+import { useAuth } from './AuthContext';
 
 interface GalleryContextType {
   artworks: Artwork[];
@@ -31,21 +32,21 @@ interface GalleryContextType {
   fetchFilters: () => Promise<void>;
 
   // Inventory Actions
-  addArtwork: (art: Artwork) => void;
-  updateArtwork: (id: string, updates: Partial<Artwork>) => void;
-  deleteArtwork: (id: string) => void;
+  addArtwork: (art: any) => Promise<void>;
+  updateArtwork: (id: string, updates: Partial<Artwork>) => Promise<void>;
+  deleteArtwork: (id: string) => Promise<void>;
 
   // Order Actions
   addOrder: (order: Order) => void;
-  updateOrderStatus: (id: string, status: OrderStatus, tracking?: string) => void;
+  updateOrderStatus: (id: string, status: OrderStatus, tracking?: string) => Promise<void>;
 
   // Settings Actions
-  updateShippingConfig: (config: Partial<ShippingConfig>) => void;
-  updateSiteContent: (content: Partial<SiteContent>) => void;
+  updateShippingConfig: (config: ShippingConfig) => Promise<void>;
+  updateSiteContent: (content: SiteContent) => Promise<void>;
 
   // Conversation Actions
-  addConversation: (conv: Conversation) => void;
-  deleteConversation: (id: string) => void;
+  addConversation: (conv: any) => Promise<void>;
+  deleteConversation: (id: string) => Promise<void>;
 
   // Financials (Mock)
   stripeConnected: boolean;
@@ -62,6 +63,7 @@ export const useGallery = () => {
 };
 
 export const GalleryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   // --- Inventory State ---
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,49 +82,15 @@ export const GalleryProvider: React.FC<{ children: ReactNode }> = ({ children })
   });
 
   // --- Order State (Mock Initial Data) ---
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: 'ORD-001',
-      customerName: 'Ali Khan',
-      customerEmail: 'ali@example.com',
-      items: [],
-      totalAmount: 450000,
-      currency: 'PKR' as any,
-      status: 'SHIPPED',
-      date: new Date('2023-11-15'),
-      shippingAddress: '123 DHA Phase 6, Lahore',
-      shippingCountry: 'Pakistan',
-      trackingNumber: 'DHL-9928382',
-      paymentMethod: 'STRIPE',
-      transactionId: 'pi_3M9x8K2eZvKylo2C1x5y8'
-    },
-    {
-      id: 'ORD-002',
-      customerName: 'John Smith',
-      customerEmail: 'john@london.co.uk',
-      items: [],
-      totalAmount: 950000,
-      currency: 'PKR' as any,
-      status: 'PROCESSING',
-      date: new Date('2024-01-20'),
-      shippingAddress: '45 Baker St, London',
-      shippingCountry: 'UK',
-      paymentMethod: 'STRIPE',
-      transactionId: 'pi_3N5j1L2eZvKylo2C9a2b1'
-    }
-  ]);
-
-  // --- Content State ---
-  const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
-
-  // --- Settings State ---
   const [shippingConfig, setShippingConfig] = useState<ShippingConfig>({
-    domesticRate: 500,
-    internationalRate: 8500,
-    enableDHL: true,
-    dhlApiKey: 'MOCK_DHL_KEY_123',
-    freeShippingThreshold: 1000000
+    domesticRate: 0,
+    internationalRate: 0,
+    enableDHL: false,
+    dhlApiKey: '',
+    freeShippingThreshold: 0
   });
 
   const [stripeConnected, setStripeConnected] = useState(false);
@@ -154,47 +122,130 @@ export const GalleryProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
+  const fetchOrders = useCallback(async () => {
+    if (user?.role !== 'ADMIN') return;
+    try {
+      const response = await adminApi.getAllOrders();
+      // Map API orders to frontend Order type if needed, but they should be compatible
+      setOrders(response.orders as any);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+    }
+  }, [user?.role]);
+
+  const fetchConversations = useCallback(async () => {
+    try {
+      const response = await conversationApi.getAll();
+      setConversations(response.conversations);
+    } catch (err) {
+      console.error('Error fetching conversations:', err);
+    }
+  }, []);
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const { settings } = await settingsApi.getSettings();
+      if (settings.shippingConfig) setShippingConfig(settings.shippingConfig);
+      if (settings.siteContent) setSiteContent(settings.siteContent);
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  }, []);
+
   // --- Initial Load ---
   useEffect(() => {
     fetchArtworks();
     fetchFilters();
-  }, [fetchArtworks, fetchFilters]);
+    fetchConversations();
+    fetchSettings();
+    if (user?.role === 'ADMIN') {
+      fetchOrders();
+    }
+  }, [fetchArtworks, fetchFilters, fetchConversations, fetchSettings, fetchOrders, user?.role]);
 
   // --- Actions ---
-  const addArtwork = (art: Artwork) => {
-    setArtworks(prev => [art, ...prev]);
+  const addArtwork = async (artData: any) => {
+    try {
+      const response = await artworkApi.create(artData);
+      setArtworks(prev => [transformArtwork(response.artwork), ...prev]);
+    } catch (err) {
+      console.error('Error adding artwork:', err);
+      throw err;
+    }
   };
 
-  const updateArtwork = (id: string, updates: Partial<Artwork>) => {
-    setArtworks(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+  const updateArtwork = async (id: string, updates: Partial<Artwork>) => {
+    try {
+      const response = await artworkApi.update(id, updates as any);
+      setArtworks(prev => prev.map(a => a.id === id ? transformArtwork(response.artwork) : a));
+    } catch (err) {
+      console.error('Error updating artwork:', err);
+      throw err;
+    }
   };
 
-  const deleteArtwork = (id: string) => {
-    setArtworks(prev => prev.filter(a => a.id !== id));
+  const deleteArtwork = async (id: string) => {
+    try {
+      await artworkApi.delete(id);
+      setArtworks(prev => prev.filter(a => a.id !== id));
+    } catch (err) {
+      console.error('Error deleting artwork:', err);
+      throw err;
+    }
   };
 
   const addOrder = (order: Order) => {
     setOrders(prev => [order, ...prev]);
   };
 
-  const updateOrderStatus = (id: string, status: OrderStatus, tracking?: string) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status, trackingNumber: tracking || o.trackingNumber } : o));
+  const updateOrderStatus = async (id: string, status: OrderStatus, tracking?: string) => {
+    try {
+      await adminApi.updateOrderStatus(id, status, tracking);
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, status, trackingNumber: tracking || o.trackingNumber } : o));
+    } catch (err) {
+      console.error('Error updating order status:', err);
+      throw err;
+    }
   };
 
-  const updateShippingConfig = (config: Partial<ShippingConfig>) => {
-    setShippingConfig(prev => ({ ...prev, ...config }));
+  const updateShippingConfig = async (config: ShippingConfig) => {
+    try {
+      await settingsApi.updateSetting('shippingConfig', config);
+      setShippingConfig(config);
+    } catch (err) {
+      console.error('Error updating shipping config:', err);
+      throw err;
+    }
   };
 
-  const updateSiteContent = (content: Partial<SiteContent>) => {
-    setSiteContent(prev => ({ ...prev, ...content }));
+  const updateSiteContent = async (content: SiteContent) => {
+    try {
+      await settingsApi.updateSetting('siteContent', content);
+      setSiteContent(content);
+    } catch (err) {
+      console.error('Error updating site content:', err);
+      throw err;
+    }
   };
 
-  const addConversation = (conv: Conversation) => {
-    setConversations(prev => [conv, ...prev]);
+  const addConversation = async (convData: any) => {
+    try {
+      const response = await conversationApi.create(convData);
+      setConversations(prev => [response.conversation, ...prev]);
+    } catch (err) {
+      console.error('Error adding conversation:', err);
+      throw err;
+    }
   };
 
-  const deleteConversation = (id: string) => {
-    setConversations(prev => prev.filter(c => c.id !== id));
+  const deleteConversation = async (id: string) => {
+    try {
+      await conversationApi.delete(id);
+      setConversations(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      console.error('Error deleting conversation:', err);
+      throw err;
+    }
   };
 
   const connectStripe = () => {

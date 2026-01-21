@@ -767,3 +767,100 @@ export const uploadApi = {
         return data.url;
     },
 };
+
+// Admin API
+export const adminApi = {
+    // Get all orders (Admin only)
+    getAllOrders: async (filters: any = {}): Promise<{
+        orders: ApiOrder[];
+        pagination: PaginationInfo;
+        summary: any
+    }> => {
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== '') {
+                params.append(key, String(value));
+            }
+        });
+        const response = await authFetch(`${API_URL}/orders/admin?${params}`);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to fetch all orders');
+        }
+        return response.json();
+    },
+
+    // Update order status (Admin only)
+    updateOrderStatus: async (id: string, status: string, trackingNumber?: string): Promise<any> => {
+        const response = await authFetch(`${API_URL}/orders/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status, trackingNumber }),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update order status');
+        }
+        return response.json();
+    }
+};
+
+// Settings API
+export const settingsApi = {
+    getSettings: async (): Promise<{ settings: Record<string, any> }> => {
+        const response = await fetch(`${API_URL}/settings`);
+        if (!response.ok) throw new Error('Failed to fetch settings');
+        return response.json();
+    },
+    updateSetting: async (key: string, value: any): Promise<any> => {
+        const response = await authFetch(`${API_URL}/settings`, {
+            method: 'POST',
+            body: JSON.stringify({ key, value }),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update setting');
+        }
+        return response.json();
+    }
+};
+
+// Conversation API
+export const conversationApi = {
+    getAll: async (): Promise<{ conversations: any[] }> => {
+        const response = await fetch(`${API_URL}/conversations`);
+        if (!response.ok) throw new Error('Failed to fetch conversations');
+        return response.json();
+    },
+    create: async (data: any): Promise<any> => {
+        const response = await authFetch(`${API_URL}/conversations`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to create conversation');
+        }
+        return response.json();
+    },
+    update: async (id: string, data: any): Promise<any> => {
+        const response = await authFetch(`${API_URL}/conversations/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update conversation');
+        }
+        return response.json();
+    },
+    delete: async (id: string): Promise<any> => {
+        const response = await authFetch(`${API_URL}/conversations/${id}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to delete conversation');
+        }
+        return response.json();
+    }
+};

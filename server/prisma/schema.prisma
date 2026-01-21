@@ -141,3 +141,26 @@ model CartItem {
   @@unique([userId, artworkId, type, printSize])
   @@index([userId])
 }
+
+model Conversation {
+  id           String   @id @default(uuid())
+  title        String
+  subtitle     String?
+  description  String?
+  category     String   @default("WATCH") // WATCH, LISTEN, LEARN
+  videoId      String   @unique
+  thumbnailUrl String?
+  duration     String?
+  location     String?
+  date         DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

@@ -12,6 +12,7 @@ interface JWTPayload {
     userId: string;
     email: string;
     role: string;
+    fullName: string;
 }
 
 interface AuthContextType {
@@ -39,7 +40,7 @@ const decodeToken = (token: string): User | null => {
         return {
             id: decoded.userId,
             email: decoded.email,
-            fullName: decoded.email, // Full name not in JWT by default
+            fullName: decoded.fullName,
             role: (decoded.role as 'ADMIN' | 'ARTIST' | 'USER') || 'USER',
         };
     } catch (error) {

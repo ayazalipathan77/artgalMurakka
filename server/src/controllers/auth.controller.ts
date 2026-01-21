@@ -48,6 +48,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
             userId: user.id,
             email: user.email,
             role: user.role,
+            fullName: user.fullName,
         });
 
         res.status(StatusCodes.CREATED).json({
@@ -148,6 +149,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             userId: user.id,
             email: user.email,
             role: user.role,
+            fullName: user.fullName,
         });
 
         res.status(StatusCodes.OK).json({

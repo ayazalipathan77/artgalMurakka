@@ -15,6 +15,8 @@ import cartRoutes from './routes/cart.routes';
 import orderRoutes from './routes/order.routes';
 import paymentRoutes from './routes/payment.routes';
 import uploadRoutes from './routes/upload.routes';
+import conversationRoutes from './routes/conversation.routes';
+import settingRoutes from './routes/setting.routes';
 
 const app: Application = express();
 
@@ -28,7 +30,17 @@ app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 
 // CORS Configuration
 app.use(cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+
+        const allowedOrigins = [env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'];
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost:')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 }));
@@ -46,6 +58,8 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/conversations', conversationRoutes);
+app.use('/api/settings', settingRoutes);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
