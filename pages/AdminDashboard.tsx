@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import {
    LayoutDashboard, Package, Users, DollarSign, Settings,
    Plus, Edit, Trash2, Truck, CreditCard, Check, X, Search,
-   Video, Globe, MessageSquare, Save, Facebook, Instagram
+   Video, Globe, MessageSquare, Save, Facebook, Instagram, Image as ImageIcon
 } from 'lucide-react';
 import { useGallery } from '../context/GalleryContext';
 import { useCurrency } from '../App';
 import { OrderStatus, Artwork, Conversation } from '../types';
+import { uploadApi } from '../services/api';
 
 export const AdminDashboard: React.FC = () => {
    const {
@@ -21,7 +22,8 @@ export const AdminDashboard: React.FC = () => {
    // Local State for Artworks
    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
    const [newArtwork, setNewArtwork] = useState<Partial<Artwork>>({
-      title: '', artistName: '', price: 0, category: 'Abstract', medium: '', inStock: true
+      title: '', artistName: '', price: 0, category: 'Abstract', medium: '', inStock: true,
+      year: new Date().getFullYear(), dimensions: '', description: ''
    });
 
    // Local State for Conversations
@@ -35,18 +37,48 @@ export const AdminDashboard: React.FC = () => {
 
    // Content form states
    const [heroForm, setHeroForm] = useState(siteContent);
+   const [isUploading, setIsUploading] = useState(false);
+
+   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+         alert('Please upload an image file');
+         return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+         alert('File size must be less than 5MB');
+         return;
+      }
+
+      try {
+         setIsUploading(true);
+         const url = await uploadApi.uploadImage(file);
+         setNewArtwork(prev => ({ ...prev, imageUrl: url }));
+      } catch (error) {
+         console.error('Upload failed:', error);
+         alert('Failed to upload image. Please try again.');
+      } finally {
+         setIsUploading(false);
+      }
+   };
 
    const handleAddArtwork = async () => {
       if (!newArtwork.title || !newArtwork.price) return;
       try {
          await addArtwork({
             ...newArtwork,
-            imageUrl: `https://picsum.photos/800/800?random=${Date.now()}`,
+            imageUrl: newArtwork.imageUrl || `https://picsum.photos/800/800?random=${Date.now()}`,
             year: new Date().getFullYear(),
             dimensions: '24x24'
          } as any);
          setIsAddModalOpen(false);
-         setNewArtwork({ title: '', artistName: '', price: 0, category: 'Abstract', medium: '', inStock: true });
+         setNewArtwork({
+            title: '', artistName: '', price: 0, category: 'Abstract', medium: '', inStock: true,
+            year: new Date().getFullYear(), dimensions: '', description: '', imageUrl: ''
+         });
       } catch (err) {
          alert('Failed to add artwork');
       }
@@ -325,11 +357,65 @@ export const AdminDashboard: React.FC = () => {
                {/* Add Modal */}
                {isAddModalOpen && (
                   <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-                     <div className="bg-stone-900 border border-stone-700 p-6 w-full max-w-lg space-y-4">
-                        <h3 className="text-white text-xl">Add New Masterpiece</h3>
-                        <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="Title" value={newArtwork.title} onChange={e => setNewArtwork({ ...newArtwork, title: e.target.value })} />
-                        <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" placeholder="Artist Name" value={newArtwork.artistName} onChange={e => setNewArtwork({ ...newArtwork, artistName: e.target.value })} />
-                        <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white" type="number" placeholder="Price (PKR)" value={newArtwork.price || ''} onChange={e => setNewArtwork({ ...newArtwork, price: Number(e.target.value) })} />
+                     <div className="bg-stone-900 border border-stone-700 p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-6">
+                        <h3 className="text-white text-xl border-b border-stone-800 pb-4">Add New Masterpiece</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           {/* Left Column: Form Fields */}
+                           <div className="space-y-4">
+                              <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" placeholder="Title" value={newArtwork.title} onChange={e => setNewArtwork({ ...newArtwork, title: e.target.value })} />
+                              <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" placeholder="Artist Name" value={newArtwork.artistName} onChange={e => setNewArtwork({ ...newArtwork, artistName: e.target.value })} />
+
+                              <div className="grid grid-cols-2 gap-4">
+                                 <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" type="number" placeholder="Price (PKR)" value={newArtwork.price || ''} onChange={e => setNewArtwork({ ...newArtwork, price: Number(e.target.value) })} />
+                                 <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" type="number" placeholder="Year" value={newArtwork.year} onChange={e => setNewArtwork({ ...newArtwork, year: Number(e.target.value) })} />
+                              </div>
+
+                              <select className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" value={newArtwork.category} onChange={e => setNewArtwork({ ...newArtwork, category: e.target.value as any })}>
+                                 <option value="Abstract">Abstract</option>
+                                 <option value="Calligraphy">Calligraphy</option>
+                                 <option value="Landscape">Landscape</option>
+                                 <option value="Miniature">Miniature</option>
+                                 <option value="Portrait">Portrait</option>
+                              </select>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                 <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" placeholder="Medium (e.g. Oil on Canvas)" value={newArtwork.medium} onChange={e => setNewArtwork({ ...newArtwork, medium: e.target.value })} />
+                                 <input className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" placeholder="Dimensions (e.g. 24x36)" value={newArtwork.dimensions} onChange={e => setNewArtwork({ ...newArtwork, dimensions: e.target.value })} />
+                              </div>
+                           </div>
+
+                           {/* Right Column: Compact Image Upload */}
+                           <div>
+                              <div className="h-full w-full bg-stone-950 border border-stone-700 flex flex-col items-center justify-center overflow-hidden relative group min-h-[200px]">
+                                 {newArtwork.imageUrl ? (
+                                    <>
+                                       <img src={newArtwork.imageUrl} alt="Preview" className="w-full h-full object-contain p-2" />
+                                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                          <label className="cursor-pointer bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm border border-white/20">
+                                             Change
+                                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                                          </label>
+                                       </div>
+                                    </>
+                                 ) : (
+                                    <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full hover:bg-stone-800 transition-colors">
+                                       {isUploading ? (
+                                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mb-2"></div>
+                                       ) : (
+                                          <ImageIcon className="mx-auto mb-2 opacity-50 text-stone-600" size={32} />
+                                       )}
+                                       <span className="text-xs text-stone-500">{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                                       <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                                    </label>
+                                 )}
+                              </div>
+                              <p className="text-[10px] text-stone-600 mt-2 text-center">JPG, PNG, WEBP (Max 5MB)</p>
+                           </div>
+                        </div>
+
+                        <textarea className="w-full bg-stone-950 border border-stone-700 p-2 text-white text-sm" rows={3} placeholder="Artwork Description..." value={newArtwork.description} onChange={e => setNewArtwork({ ...newArtwork, description: e.target.value })} />
+
                         <div className="flex gap-2">
                            <button onClick={handleAddArtwork} className="flex-1 bg-amber-600 py-2 text-white">Save</button>
                            <button onClick={() => setIsAddModalOpen(false)} className="flex-1 bg-stone-800 py-2 text-white">Cancel</button>

@@ -44,7 +44,7 @@ export interface Artwork {
   id: string;
   title: string;
   artistName: string;
-  artistId: string;
+  artistId?: string;
   price: number; // Base price in PKR
   imageUrl: string;
   medium: string;

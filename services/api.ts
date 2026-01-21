@@ -23,7 +23,7 @@ const authFetch = async (url: string, options: RequestInit = {}): Promise<Respon
 // API Response types
 export interface ApiArtwork {
     id: string;
-    artistId: string;
+    artistId: string | null;
     title: string;
     description: string | null;
     price: string; // Decimal comes as string from Prisma
@@ -41,6 +41,7 @@ export interface ApiArtwork {
     viewCount: number;
     createdAt: string;
     updatedAt: string;
+    artistName?: string;
     artist: {
         id: string;
         userId: string;
@@ -54,7 +55,7 @@ export interface ApiArtwork {
             fullName: string;
             email: string;
         };
-    };
+    } | null;
     reviews?: ApiReview[];
 }
 
@@ -183,6 +184,7 @@ export const artworkApi = {
         year: number;
         isAuction?: boolean;
         inStock?: boolean;
+        artistName?: string;
     }): Promise<{ message: string; artwork: ApiArtwork }> => {
         const response = await authFetch(`${API_URL}/artworks`, {
             method: 'POST',
@@ -329,8 +331,8 @@ export const transformArtwork = (apiArtwork: ApiArtwork): import('../types').Art
     return {
         id: apiArtwork.id,
         title: apiArtwork.title,
-        artistName: apiArtwork.artist.user.fullName,
-        artistId: apiArtwork.artistId,
+        artistName: apiArtwork.artistName || apiArtwork.artist?.user.fullName || 'Unknown',
+        artistId: apiArtwork.artistId || undefined,
         price: parseFloat(apiArtwork.price),
         imageUrl: apiArtwork.imageUrl,
         medium: apiArtwork.medium,
@@ -397,11 +399,12 @@ export interface ApiOrderItem {
         imageUrl: string;
         dimensions?: string;
         medium?: string;
+        artistName?: string;
         artist: {
             user: {
                 fullName: string;
             };
-        };
+        } | null;
     };
 }
 
@@ -636,7 +639,7 @@ export const transformOrder = (apiOrder: ApiOrder): import('../types').Order => 
         items: apiOrder.items.map(item => ({
             id: item.artwork.id,
             title: item.artwork.title,
-            artistName: item.artwork.artist.user.fullName,
+            artistName: item.artwork.artistName || item.artwork.artist?.user.fullName || 'Unknown',
             artistId: '',
             price: parseFloat(item.priceAtPurchase),
             imageUrl: item.artwork.imageUrl,
@@ -652,7 +655,7 @@ export const transformOrder = (apiOrder: ApiOrder): import('../types').Order => 
             finalPrice: parseFloat(item.priceAtPurchase) * item.quantity,
         })),
         totalAmount: parseFloat(apiOrder.totalAmount),
-        currency: 'PKR' as const,
+        currency: 'PKR' as any,
         status: apiOrder.status,
         date: new Date(apiOrder.createdAt),
         shippingAddress: apiOrder.shippingAddress,

@@ -171,9 +171,9 @@ export const createArtwork = async (req: Request, res: Response): Promise<void> 
             where: { userId: req.user.userId },
         });
 
-        if (!artist) {
+        if (!artist && req.user.role !== 'ADMIN') {
             res.status(StatusCodes.FORBIDDEN).json({
-                message: 'Artist profile not found. Only artists can create artworks.',
+                message: 'Artist profile not found. Only artists and admins can create artworks.',
             });
             return;
         }
@@ -182,7 +182,8 @@ export const createArtwork = async (req: Request, res: Response): Promise<void> 
             data: {
                 ...validatedData,
                 price: new Prisma.Decimal(validatedData.price),
-                artistId: artist.id,
+                artistId: artist?.id || null,
+                artistName: validatedData.artistName || (artist ? undefined : 'Unknown Artist'),
             },
             include: {
                 artist: {

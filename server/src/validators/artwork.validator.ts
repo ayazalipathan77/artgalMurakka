@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const createArtworkSchema = z.object({
     title: z.string().min(1, 'Title is required').max(255),
+    artistName: z.string().optional(),
     description: z.string().optional(),
     price: z.number().positive('Price must be positive'),
     currency: z.enum(['PKR', 'USD', 'GBP']).default('PKR'),
