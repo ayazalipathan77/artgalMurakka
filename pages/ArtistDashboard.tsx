@@ -5,6 +5,7 @@ import { useCurrency } from '../App';
 import { Artwork } from '../types';
 import { uploadApi, artistApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 export const ArtistDashboard: React.FC = () => {
    const { artworks, addArtwork, updateArtwork, deleteArtwork } = useGallery();
@@ -138,6 +139,12 @@ export const ArtistDashboard: React.FC = () => {
             >
                <Upload size={16} /> Upload New Work
             </button>
+            <Link
+               to="/artist/profile"
+               className="flex items-center gap-2 text-stone-400 hover:text-white transition-colors ml-6 px-4 py-2 border border-stone-800 hover:border-stone-600"
+            >
+               <Edit2 size={16} /> Edit Profile
+            </Link>
          </div>
 
          {/* Stats Cards */}

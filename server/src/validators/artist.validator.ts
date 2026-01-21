@@ -4,6 +4,7 @@ export const updateArtistProfileSchema = z.object({
     bio: z.string().max(2000, 'Bio must be less than 2000 characters').optional(),
     portfolioUrl: z.string().url('Invalid portfolio URL').optional().or(z.literal('')),
     originCity: z.string().max(100).optional(),
+    imageUrl: z.string().optional(),
 });
 
 export const artistQuerySchema = z.object({

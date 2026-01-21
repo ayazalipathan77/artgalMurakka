@@ -8,6 +8,7 @@ import { ArtworkDetail } from './pages/ArtworkDetail';
 import { Cart } from './pages/Cart';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ArtistDashboard } from './pages/ArtistDashboard';
+import { ArtistProfile } from './pages/ArtistProfile';
 import { UserProfile } from './pages/UserProfile';
 import { Auth } from './pages/Auth';
 import { Exhibitions } from './pages/Exhibitions';
@@ -147,6 +148,7 @@ const App: React.FC = () => {
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/admin" element={<ProtectedRoute requiredRole="ADMIN"><AdminDashboard /></ProtectedRoute>} />
                       <Route path="/artist-dashboard" element={<ProtectedRoute requiredRole="ARTIST"><ArtistDashboard /></ProtectedRoute>} />
+                      <Route path="/artist/profile" element={<ProtectedRoute requiredRole="ARTIST"><ArtistProfile /></ProtectedRoute>} />
                       <Route path="/profile" element={<ProtectedRoute requiredRole="USER"><UserProfile /></ProtectedRoute>} />
                       <Route path="/invoice/:id" element={<InvoiceView />} />
                     </Routes>

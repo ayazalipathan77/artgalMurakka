@@ -78,6 +78,7 @@ export interface ApiArtist {
     bio: string | null;
     portfolioUrl: string | null;
     originCity: string | null;
+    imageUrl?: string | null;
     createdAt: string;
     updatedAt: string;
     user: {
@@ -261,6 +262,18 @@ export const artistApi = {
     },
 
 
+    // Update artist profile (Artist owner only)
+    updateProfile: async (id: string, data: { bio?: string; portfolioUrl?: string; originCity?: string; imageUrl?: string }): Promise<{ message: string; artist: ApiArtist }> => {
+        const response = await authFetch(`${API_URL}/artists/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update profile');
+        }
+        return response.json();
+    },
 
     // Get single artist by ID
     getById: async (id: string): Promise<{ artist: ApiArtist }> => {
@@ -290,22 +303,7 @@ export const artistApi = {
         return response.json();
     },
 
-    // Update artist profile
-    updateProfile: async (id: string, data: {
-        bio?: string;
-        portfolioUrl?: string;
-        originCity?: string;
-    }): Promise<{ message: string; artist: ApiArtist }> => {
-        const response = await authFetch(`${API_URL}/artists/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to update profile');
-        }
-        return response.json();
-    },
+
 
     // Get artist stats
     getStats: async (id: string): Promise<{
@@ -362,7 +360,7 @@ export const transformArtist = (apiArtist: ApiArtist): import('../types').Artist
         id: apiArtist.id,
         name: apiArtist.user.fullName,
         bio: apiArtist.bio || '',
-        imageUrl: `https://picsum.photos/200/200?random=${apiArtist.id.slice(0, 8)}`,
+        imageUrl: apiArtist.imageUrl || `https://picsum.photos/200/200?random=${apiArtist.id.slice(0, 8)}`,
         specialty: apiArtist.originCity || 'Contemporary Art',
     };
 };
