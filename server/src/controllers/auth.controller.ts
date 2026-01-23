@@ -42,6 +42,19 @@ export const register = async (req: Request, res: Response): Promise<void> => {
                 },
             });
         }
+        if (validatedData.address && validatedData.city) {
+            await prisma.address.create({
+                data: {
+                    userId: user.id,
+                    address: validatedData.address,
+                    city: validatedData.city,
+                    country: validatedData.country,
+                    zipCode: validatedData.zipCode,
+                    type: 'SHIPPING',
+                    isDefault: true
+                }
+            });
+        }
 
         // Generate token
         const token = generateToken({

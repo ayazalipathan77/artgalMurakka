@@ -90,7 +90,10 @@ export const UserProfile: React.FC = () => {
                </div>
                <div>
                   <h1 className="font-serif text-3xl text-white">{profile?.fullName}</h1>
-                  <p className="text-stone-500 uppercase tracking-widest text-xs mt-1">{profile?.email} • {profile?.role}</p>
+                  <p className="text-stone-500 uppercase tracking-widest text-xs mt-1">
+                     {profile?.email} • {profile?.role}
+                     {profile?.phoneNumber && <span> • {profile.phoneNumber}</span>}
+                  </p>
                </div>
             </div>
             <button onClick={handleLogout} className="text-stone-500 hover:text-white flex items-center gap-2 text-sm"><LogOut size={16} /> Sign Out</button>
@@ -122,8 +125,8 @@ export const UserProfile: React.FC = () => {
                               </div>
                               <div className="text-right">
                                  <span className={`inline-block px-3 py-1 text-xs rounded-full border mb-2 ${order.status === 'DELIVERED' ? 'bg-green-900/30 text-green-500 border-green-900/50' :
-                                       order.status === 'PENDING' ? 'bg-yellow-900/30 text-yellow-500 border-yellow-900/50' :
-                                          'bg-stone-800 text-stone-400 border-stone-700'
+                                    order.status === 'PENDING' ? 'bg-yellow-900/30 text-yellow-500 border-yellow-900/50' :
+                                       'bg-stone-800 text-stone-400 border-stone-700'
                                     }`}>
                                     {order.status}
                                  </span>

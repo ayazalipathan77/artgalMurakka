@@ -5,7 +5,7 @@ import { useGallery } from '../context/GalleryContext';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Trash2, CheckCircle, FileText, AlertCircle, Lock, Loader2 } from 'lucide-react';
-import { orderApi, paymentApi, shippingApi } from '../services/api'; // Import shippingApi
+import { orderApi, paymentApi, shippingApi, userApi } from '../services/api'; // Import shippingApi
 import { StripeCheckout } from '../components/StripeCheckout';
 
 export const Cart: React.FC = () => {
@@ -78,6 +78,32 @@ export const Cart: React.FC = () => {
          fetchRates();
       }
    }, [shippingDetails.country, cart, step]);
+
+   // Pre-fill shipping details from user profile
+   useEffect(() => {
+      const loadUserProfile = async () => {
+         if (step === 'SHIPPING' && token && !shippingDetails.address) {
+            try {
+               const { user: profile } = await userApi.getProfile();
+               if (profile) {
+                  const defaultAddress = profile.addresses?.find((a: any) => a.isDefault) || profile.addresses?.[0];
+
+                  setShippingDetails(prev => ({
+                     ...prev,
+                     firstName: profile.fullName?.split(' ')[0] || prev.firstName,
+                     lastName: profile.fullName?.split(' ').slice(1).join(' ') || prev.lastName,
+                     address: defaultAddress?.address || prev.address,
+                     city: defaultAddress?.city || prev.city,
+                     country: defaultAddress?.country || prev.country,
+                  }));
+               }
+            } catch (err) {
+               console.error('Failed to load profile for shipping:', err);
+            }
+         }
+      };
+      loadUserProfile();
+   }, [step, token]);
 
 
    // Totals Calculation
@@ -328,8 +354,8 @@ export const Cart: React.FC = () => {
                                  onClick={() => setPaymentMethod('STRIPE')}
                                  disabled={!stripeEnabled}
                                  className={`flex-1 py-4 border text-center transition-colors ${paymentMethod === 'STRIPE'
-                                       ? 'border-amber-500 bg-amber-900/10 text-white'
-                                       : 'border-stone-700 text-stone-400 hover:border-stone-500'
+                                    ? 'border-amber-500 bg-amber-900/10 text-white'
+                                    : 'border-stone-700 text-stone-400 hover:border-stone-500'
                                     } ${!stripeEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                               >
                                  Card Payment (Stripe)

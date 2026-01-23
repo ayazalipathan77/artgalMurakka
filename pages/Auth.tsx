@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Lock, Mail, Facebook, Chrome, ArrowRight } from 'lucide-react';
+import { User, Lock, Mail, Facebook, Chrome, ArrowRight, Phone, MapPin, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +11,14 @@ export const Auth: React.FC = () => {
    const [email, setEmail] = useState('');
    const [password, setPassword] = useState('');
    const [fullName, setFullName] = useState('');
+
+   // New Fields
+   const [phoneNumber, setPhoneNumber] = useState('');
+   const [address, setAddress] = useState('');
+   const [city, setCity] = useState('');
+   const [country, setCountry] = useState('Pakistan');
+   const [zipCode, setZipCode] = useState('');
+
    const [error, setError] = useState('');
    const [loading, setLoading] = useState(false);
    const navigate = useNavigate();
@@ -67,6 +75,11 @@ export const Auth: React.FC = () => {
                   password,
                   fullName,
                   role,
+                  phoneNumber,
+                  address,
+                  city,
+                  country,
+                  zipCode
                }),
             });
 
@@ -96,7 +109,7 @@ export const Auth: React.FC = () => {
       <div className="min-h-screen pt-32 pb-12 flex items-center justify-center px-4 bg-[url('https://picsum.photos/1920/1080?blur=10')] bg-cover bg-fixed">
          <div className="absolute inset-0 bg-stone-950/90"></div>
 
-         <div className="relative z-10 w-full max-w-md bg-stone-900 border border-stone-800 p-8 shadow-2xl animate-fade-in">
+         <div className="relative z-10 w-full max-w-md bg-stone-900 border border-stone-800 p-8 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
             <h2 className="font-serif text-3xl text-white text-center mb-2">MURAQQA</h2>
             <p className="text-stone-500 text-center text-xs uppercase tracking-widest mb-8">{isLogin ? 'Sign In to your account' : 'Join the Collective'}</p>
 
@@ -130,16 +143,71 @@ export const Auth: React.FC = () => {
 
                <div className="space-y-4">
                   {!isLogin && (
-                     <div className="relative group">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors" size={18} />
-                        <input
-                           type="text"
-                           placeholder="Full Name"
-                           value={fullName}
-                           onChange={(e) => setFullName(e.target.value)}
-                           className="w-full bg-stone-950 border border-stone-700 p-3 pl-10 text-white focus:border-amber-500 outline-none transition-colors"
-                        />
-                     </div>
+                     <>
+                        <div className="relative group">
+                           <User className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors" size={18} />
+                           <input
+                              type="text"
+                              placeholder="Full Name"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full bg-stone-950 border border-stone-700 p-3 pl-10 text-white focus:border-amber-500 outline-none transition-colors"
+                              required
+                           />
+                        </div>
+                        <div className="relative group">
+                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors" size={18} />
+                           <input
+                              type="tel"
+                              placeholder="Phone Number"
+                              value={phoneNumber}
+                              onChange={(e) => setPhoneNumber(e.target.value)}
+                              className="w-full bg-stone-950 border border-stone-700 p-3 pl-10 text-white focus:border-amber-500 outline-none transition-colors"
+                           />
+                        </div>
+                        {/* Address Section */}
+                        <div className="space-y-2">
+                           <div className="relative group">
+                              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors" size={18} />
+                              <input
+                                 type="text"
+                                 placeholder="Address"
+                                 value={address}
+                                 onChange={(e) => setAddress(e.target.value)}
+                                 className="w-full bg-stone-950 border border-stone-700 p-3 pl-10 text-white focus:border-amber-500 outline-none transition-colors"
+                              />
+                           </div>
+                           <div className="grid grid-cols-2 gap-2">
+                              <input
+                                 type="text"
+                                 placeholder="City"
+                                 value={city}
+                                 onChange={(e) => setCity(e.target.value)}
+                                 className="w-full bg-stone-950 border border-stone-700 p-3 text-white focus:border-amber-500 outline-none transition-colors"
+                              />
+                              <input
+                                 type="text"
+                                 placeholder="Zip Code"
+                                 value={zipCode}
+                                 onChange={(e) => setZipCode(e.target.value)}
+                                 className="w-full bg-stone-950 border border-stone-700 p-3 text-white focus:border-amber-500 outline-none transition-colors"
+                              />
+                           </div>
+                           <div className="relative group">
+                              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors" size={18} />
+                              <select
+                                 value={country}
+                                 onChange={(e) => setCountry(e.target.value)}
+                                 className="w-full bg-stone-950 border border-stone-700 p-3 pl-10 text-white focus:border-amber-500 outline-none transition-colors appearance-none"
+                              >
+                                 <option value="Pakistan">Pakistan</option>
+                                 <option value="UAE">UAE</option>
+                                 <option value="UK">UK</option>
+                                 <option value="USA">USA</option>
+                              </select>
+                           </div>
+                        </div>
+                     </>
                   )}
 
                   <div className="relative group">
@@ -150,6 +218,7 @@ export const Auth: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full bg-stone-950 border border-stone-700 p-3 pl-10 text-white focus:border-amber-500 outline-none transition-colors"
+                        required
                      />
                   </div>
 
@@ -161,6 +230,7 @@ export const Auth: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full bg-stone-950 border border-stone-700 p-3 pl-10 text-white focus:border-amber-500 outline-none transition-colors"
+                        required
                      />
                   </div>
 

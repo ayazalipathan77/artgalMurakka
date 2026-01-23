@@ -6,6 +6,10 @@ export const registerSchema = z.object({
     fullName: z.string().min(2, 'Full name must be at least 2 characters'),
     role: z.enum(['USER', 'ARTIST']).default('USER'),
     phoneNumber: z.string().optional(),
+    address: z.string().min(5, 'Address is too short').optional(),
+    city: z.string().min(2, 'City is required').optional(),
+    country: z.string().default('Pakistan'),
+    zipCode: z.string().optional(),
 });
 
 export const loginSchema = z.object({
