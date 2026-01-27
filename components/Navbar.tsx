@@ -1,181 +1,148 @@
-
-import React, { useState } from 'react';
-import { Menu, ShoppingBag, User as UserIcon, Search, Globe, X, ChevronDown } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useCart, useCurrency } from '../App';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, User, Search, Menu, X } from 'lucide-react';
+import { SearchOverlay } from './SearchOverlay';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useCart } from '../App';
 import { useAuth } from '../context/AuthContext';
-import { UI_TEXT } from '../constants';
-import { Currency } from '../types';
 
 interface NavbarProps {
-  lang: 'EN' | 'UR';
-  setLang: (l: 'EN' | 'UR') => void;
+  lang?: 'EN' | 'UR';
+  setLang?: (lang: 'EN' | 'UR') => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ lang, setLang }) => {
+export const Navbar: React.FC<NavbarProps> = () => {
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
   const { cart } = useCart();
-  const { currency, setCurrency } = useCurrency();
-  const { user, logout, isAuthenticated } = useAuth();
-  const [currOpen, setCurrOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
-  const toggleLang = () => setLang(lang === 'EN' ? 'UR' : 'EN');
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
+
+  // Handle Logout
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const navLinks = [
+    { name: 'Artists', path: '/artists' },
+    { name: 'Exhibitions', path: '/exhibitions' },
+    { name: 'Collection', path: '/gallery' },
+    { name: 'Stories', path: '/conversations' },
+  ];
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-stone-950/90 backdrop-blur-md border-b border-stone-800 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+    <>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || mobileMenuOpen ? 'bg-stone-950/90 backdrop-blur-md py-4 border-b border-stone-800' : 'bg-gradient-to-b from-stone-950/90 to-transparent py-6'
+          }`}
+      >
+        <div className="max-w-screen-2xl mx-auto px-6 md:px-12 flex items-center justify-between">
 
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center gap-4">
-            <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-stone-300 hover:text-white">
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-            <Link to="/" className="font-serif text-2xl md:text-3xl text-amber-500 tracking-wider font-bold">
-              MURAQQA
-            </Link>
+          <Link to="/" className="z-50 relative group">
+            <div className="flex flex-col items-center">
+              <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-yellow-400 to-amber-600 drop-shadow-sm filter">
+                MURAQQA
+              </h1>
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50 mt-1"></div>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-10">
+            {navLinks.map(link => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`text-xs uppercase tracking-[0.2em] font-medium transition-colors hover:text-amber-500 ${location.pathname === link.path ? 'text-white' : 'text-stone-400'
+                  }`}
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-8 items-center">
-            <Link to="/gallery" className="text-stone-300 hover:text-amber-450 transition-colors font-medium text-xs tracking-[0.15em] uppercase">
-              {UI_TEXT[lang].nav.gallery}
-            </Link>
-            <Link to="/artists" className="text-stone-300 hover:text-amber-450 transition-colors font-medium text-xs tracking-[0.15em] uppercase">
-              {UI_TEXT[lang].nav.artists}
-            </Link>
-            <Link to="/exhibitions" className="text-stone-300 hover:text-amber-450 transition-colors font-medium text-xs tracking-[0.15em] uppercase">
-              {UI_TEXT[lang].nav.exhibitions}
-            </Link>
-            <Link to="/conversations" className="text-stone-300 hover:text-amber-450 transition-colors font-medium text-xs tracking-[0.15em] uppercase">
-              {UI_TEXT[lang].nav.conversations}
-            </Link>
-            {user?.role === 'ADMIN' && (
-              <Link to="/admin" className="text-amber-500 hover:text-amber-400 transition-colors font-bold text-xs tracking-[0.15em] uppercase border border-amber-500/30 px-3 py-1 rounded">
-                Admin
-              </Link>
-            )}
-            {user?.role === 'ARTIST' && (
-              <Link to="/artist-dashboard" className="text-amber-500 hover:text-amber-400 transition-colors font-bold text-xs tracking-[0.15em] uppercase border border-amber-500/30 px-3 py-1 rounded">
-                Artist
-              </Link>
-            )}
-          </div>
-
-          {/* Right Icons */}
-          <div className="flex items-center space-x-4 md:space-x-6">
-
-            {/* Currency Dropdown */}
-            <div className="relative hidden md:block">
-              <button onClick={() => setCurrOpen(!currOpen)} className="text-stone-400 hover:text-white flex items-center gap-1 text-xs font-bold">
-                {currency} <ChevronDown size={14} />
-              </button>
-              {currOpen && (
-                <div className="absolute top-8 right-0 bg-stone-900 border border-stone-700 rounded shadow-xl py-2 w-24">
-                  {Object.values(Currency).map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => { setCurrency(c); setCurrOpen(false); }}
-                      className={`block w-full text-left px-4 py-2 text-xs hover:bg-stone-800 ${currency === c ? 'text-amber-500' : 'text-stone-300'}`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button onClick={toggleLang} className="text-stone-400 hover:text-white flex items-center gap-1 text-xs font-bold">
-              <Globe size={16} /> {lang}
+          {/* Actions */}
+          <div className="flex items-center gap-8 z-50">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="text-stone-400 hover:text-white transition-colors"
+            >
+              <Search size={18} />
             </button>
 
-            <div className="relative">
-              {!isAuthenticated ? (
-                <Link to="/auth" className="text-stone-400 hover:text-white">
-                  <UserIcon size={20} />
-                </Link>
-              ) : (
-                <div className="relative">
-                  <button
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 text-stone-300 hover:text-white transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold text-white uppercase">
-                      {user?.fullName?.charAt(0) || user?.email?.charAt(0)}
-                    </div>
-                    <span className="hidden lg:block text-xs font-bold uppercase tracking-wider">{user?.fullName?.split(' ')[0]}</span>
-                    <ChevronDown size={14} className={`transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {userMenuOpen && (
-                    <div className="absolute top-10 right-0 w-48 bg-stone-900 border border-stone-800 rounded shadow-2xl py-2 z-50 animate-fade-in">
-                      <div className="px-4 py-2 border-b border-stone-800 mb-2">
-                        <p className="text-white text-sm font-bold truncate">{user?.fullName}</p>
-                        <p className="text-stone-500 text-[10px] uppercase tracking-widest">{user?.role}</p>
-                      </div>
-
-                      {user?.role === 'ADMIN' && (
-                        <Link to="/admin" className="block px-4 py-2 text-sm text-stone-300 hover:bg-stone-800 hover:text-white" onClick={() => setUserMenuOpen(false)}>
-                          admin dashboard
-                        </Link>
-                      )}
-                      {user?.role === 'ARTIST' && (
-                        <Link to="/artist-dashboard" className="block px-4 py-2 text-sm text-stone-300 hover:bg-stone-800 hover:text-white" onClick={() => setUserMenuOpen(false)}>
-                          artist portal
-                        </Link>
-                      )}
-                      <Link to="/profile" className="block px-4 py-2 text-sm text-stone-300 hover:bg-stone-800 hover:text-white" onClick={() => setUserMenuOpen(false)}>
-                        profile settings
-                      </Link>
-                      <button
-                        onClick={() => {
-                          logout();
-                          setUserMenuOpen(false);
-                          navigate('/');
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-stone-800 hover:text-red-300 transition-colors mt-2 pt-2 border-t border-stone-800"
-                      >
-                        sign out
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <Link to="/cart" className="text-stone-400 hover:text-amber-500 relative">
-              <ShoppingBag size={20} />
+            <Link to="/cart" className="text-stone-400 hover:text-white transition-colors relative">
+              <ShoppingBag size={18} />
               {cart.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-bounce">
+                <span className="absolute -top-2 -right-2 bg-amber-500 text-stone-950 text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
                   {cart.length}
                 </span>
               )}
             </Link>
+
+            {user ? (
+              <Link to="/profile" className="hidden md:block text-stone-400 hover:text-white transition-colors">
+                <User size={18} />
+              </Link>
+            ) : (
+              <Link to="/auth" className="hidden md:block text-xs uppercase tracking-widest text-stone-400 hover:text-white">
+                Log In
+              </Link>
+            )}
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden text-white"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
+        </div>
+      </nav>
+
+      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Mobile Menu Overlay */}
+      <div className={`fixed inset-0 bg-stone-950 z-40 transition-transform duration-500 flex flex-col items-center justify-center ${mobileMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="flex flex-col items-center gap-8">
+          {navLinks.map(link => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className="font-serif text-3xl text-white hover:text-amber-500 transition-colors"
+            >
+              {link.name}
+            </Link>
+          ))}
+          <div className="w-12 h-px bg-stone-800 my-4"></div>
+          {user ? (
+            <div className="flex flex-col items-center gap-6">
+              <Link to="/profile" className="text-sm uppercase tracking-widest text-stone-400 hover:text-white">Profile</Link>
+              <button onClick={handleLogout} className="text-sm uppercase tracking-widest text-red-500 hover:text-red-400">Sign Out</button>
+            </div>
+          ) : (
+            <Link to="/auth" className="text-xl text-white">Log In</Link>
+          )}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-stone-900 border-b border-stone-800 absolute w-full h-screen top-20 left-0 p-4">
-          <div className="space-y-4">
-            <Link to="/gallery" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.gallery}</Link>
-            <Link to="/artists" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.artists}</Link>
-            <Link to="/exhibitions" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.exhibitions}</Link>
-            <Link to="/conversations" className="block text-2xl font-serif text-stone-300 hover:text-amber-450" onClick={() => setIsOpen(false)}>{UI_TEXT[lang].nav.conversations}</Link>
-            <div className="pt-8 border-t border-stone-800">
-              <p className="text-stone-500 text-sm mb-2">Select Currency</p>
-              <div className="flex gap-4">
-                {Object.values(Currency).map((c) => (
-                  <button key={c} onClick={() => setCurrency(c)} className={`border px-3 py-1 rounded ${currency === c ? 'border-amber-500 text-amber-500' : 'border-stone-700 text-stone-500'}`}>{c}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </nav>
+    </>
   );
 };

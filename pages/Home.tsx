@@ -1,182 +1,186 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Instagram, Facebook, Twitter, Monitor, Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowRight, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { MOCK_EXHIBITIONS } from '../constants';
-import { useCurrency } from '../App';
-import { useGallery } from '../context/GalleryContext';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 interface HomeProps {
   lang: 'EN' | 'UR';
 }
 
 export const Home: React.FC<HomeProps> = ({ lang }) => {
-  const { convertPrice } = useCurrency();
-  const { siteContent, artworks, isLoading } = useGallery();
-  const auctionItem = artworks.find(a => a.isAuction);
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, 100]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+
+  // Featured Content Data (Mock)
+  const featuredExhibition = {
+    title: "Shadows of the Past",
+    artist: "Zara Khan",
+    date: "OCT 12 — DEC 24",
+    image: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?q=80&w=2070&auto=format&fit=crop"
+  };
+
+  const curatedCollections = [
+    { title: "Abstract Modernism", image: "https://images.unsplash.com/photo-1549887534-1541e9326642?q=80&w=800&auto=format&fit=crop" },
+    { title: "Calligraphic Heritage", image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=800&auto=format&fit=crop" },
+    { title: "Digital Horizons", image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=800&auto=format&fit=crop" }
+  ];
 
   return (
-    <div className="w-full overflow-hidden">
-      {/* Hero Section */}
+    <div className="bg-stone-950 min-h-screen">
+
+      {/* Immersive Hero */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-stone-950">
-           {/* Moving Graphics Rendition */}
-           <motion.div
-             animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
-             transition={{ duration: 15, repeat: Infinity }}
-             className="absolute inset-0 bg-[url('https://picsum.photos/1920/1080?grayscale')] bg-cover bg-center"
-           />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-stone-950/80 via-stone-950/40 to-stone-950"></div>
+        <motion.div
+          style={{ y: y1 }}
+          className="absolute inset-0 z-0"
+        >
+          <div className="absolute inset-0 bg-black/40 z-10" />
+          <img
+            src="/header_bg.jpg"
+            alt="Hero Art"
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
 
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-            className="font-serif text-5xl md:text-7xl lg:text-9xl text-stone-100 mb-8 font-thin tracking-wide"
-          >
-            {siteContent.heroTitle}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 1 }}
-            className="text-amber-500 text-sm md:text-xl font-light tracking-[0.3em] uppercase mb-12"
-          >
-            {siteContent.heroSubtitle}
-          </motion.p>
-          <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 1.5 }}
-             className="flex justify-center gap-6"
-          >
-             <Link to="/gallery" className="px-8 py-3 border border-amber-500 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-stone-950 transition-all duration-300 text-sm tracking-widest uppercase">
-               Enter Gallery
-             </Link>
-             <Link to="/exhibitions" className="px-8 py-3 border border-stone-700 text-stone-300 hover:border-stone-500 hover:text-white transition-all duration-300 text-sm tracking-widest uppercase">
-               Virtual Tours
-             </Link>
-          </motion.div>
+        <motion.div
+          style={{ opacity }}
+          className="relative z-20 text-center px-4 max-w-4xl mx-auto"
+        >
+          <p className="text-stone-300 uppercase tracking-[0.3em] text-xs md:text-sm mb-6 animate-fade-in">
+            Contemporary Pakistani Art
+          </p>
+          <h1 className="font-serif text-5xl md:text-8xl text-white mb-8 leading-[1.1] animate-enter">
+            Elevation of <br /> <span className="italic text-amber-500">Perspective</span>
+          </h1>
+          <div className="flex flex-col md:flex-row gap-6 justify-center items-center mt-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <Link
+              to="/gallery"
+              className="px-8 py-4 border border-white text-white uppercase tracking-widest text-xs hover:bg-white hover:text-stone-950 transition-all duration-300"
+            >
+              View Collection
+            </Link>
+            <Link
+              to="/exhibitions"
+              className="px-8 py-4 bg-amber-600 text-white uppercase tracking-widest text-xs hover:bg-amber-500 transition-all duration-300 border border-transparent"
+            >
+              Current Exhibitions
+            </Link>
+          </div>
+        </motion.div>
+
+        <motion.div
+          style={{ opacity }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/50 animate-bounce"
+        >
+          <ArrowDown size={24} />
+        </motion.div>
+      </section>
+
+      {/* Featured Exhibition (Editorial Layout) */}
+      <section className="py-32 px-6 md:px-12 max-w-screen-2xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="order-2 md:order-1 space-y-8">
+            <span className="inline-block w-12 h-px bg-amber-500 mb-4"></span>
+            <h2 className="text-4xl md:text-6xl font-serif text-white leading-tight">
+              {featuredExhibition.title}
+            </h2>
+            <p className="text-xl text-stone-400">
+              A solo exhibition by <span className="text-white">{featuredExhibition.artist}</span>
+            </p>
+            <p className="text-stone-500 max-w-md leading-relaxed">
+              Explore the ethereal boundaries between memory and reality in this groundbreaking collection.
+              Khan’s work challenges the conventional narrative of spatial dynamics in miniature painting.
+            </p>
+            <div className="pt-8">
+              <Link to="/exhibitions" className="group inline-flex items-center gap-4 text-white uppercase tracking-widest text-xs">
+                Explore Exhibition
+                <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+              </Link>
+            </div>
+          </div>
+          <div className="order-1 md:order-2 relative aspect-[3/4] md:aspect-square overflow-hidden group">
+            <img
+              src={featuredExhibition.image}
+              alt={featuredExhibition.title}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 border border-white/10 m-4 pointer-events-none"></div>
+          </div>
         </div>
       </section>
 
-      {/* Live Auction Section (Drop) */}
-      {auctionItem && (
-        <section className="py-20 bg-amber-900/10 border-y border-amber-900/30">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
-            <div className="flex-1 space-y-6">
-              <div className="inline-flex items-center gap-2 bg-red-900/30 text-red-500 px-3 py-1 text-xs uppercase tracking-widest border border-red-900/50 rounded-full animate-pulse">
-                <span className="w-2 h-2 bg-red-500 rounded-full"></span> Live Auction
-              </div>
-              <h2 className="font-serif text-4xl md:text-6xl text-white">{auctionItem.title}</h2>
-              <p className="text-stone-400 max-w-lg">{auctionItem.description}</p>
-              <div className="flex items-center gap-8">
-                <div>
-                   <p className="text-xs text-stone-500 uppercase tracking-widest mb-1">Current Bid</p>
-                   <p className="text-2xl font-serif text-amber-500">{convertPrice(auctionItem.price)}</p>
-                </div>
-                <div>
-                   <p className="text-xs text-stone-500 uppercase tracking-widest mb-1">Ends In</p>
-                   <div className="flex gap-2 text-xl font-mono text-white">
-                      <span>02</span>:<span>14</span>:<span>33</span>
-                   </div>
-                </div>
-              </div>
-              <Link to={`/artwork/${auctionItem.id}`} className="inline-block bg-white text-stone-950 px-8 py-3 uppercase tracking-widest text-sm hover:bg-stone-200 transition-colors">
-                Place Bid
-              </Link>
-            </div>
-            <div className="flex-1 relative">
-              <div className="absolute inset-0 bg-amber-500 blur-3xl opacity-20 rounded-full"></div>
-              <img src={auctionItem.imageUrl} alt="Auction" className="relative z-10 rounded-sm shadow-2xl border border-stone-800 rotate-2 hover:rotate-0 transition-transform duration-700" />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Latest Exhibitions */}
-      <section className="py-24 px-4 sm:px-8 max-w-7xl mx-auto">
-         <div className="flex justify-between items-end mb-12">
+      {/* Curated Collections (Asymmetric Grid) */}
+      <section className="py-24 bg-stone-900">
+        <div className="max-w-screen-2xl mx-auto px-6 md:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
             <div>
-               <h2 className="font-serif text-4xl text-stone-200">Latest Exhibitions</h2>
-               <p className="text-stone-500 mt-2">Immersive experiences from around the world</p>
+              <h3 className="font-serif text-3xl text-white mb-2">Curated Collections</h3>
+              <p className="text-stone-500">Handpicked selections by our curators.</p>
             </div>
-            <Link to="/exhibitions" className="text-amber-500 text-sm uppercase tracking-wide flex items-center gap-2">View All <ArrowRight size={14} /></Link>
-         </div>
-
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {MOCK_EXHIBITIONS.map(ex => (
-              <div key={ex.id} className="group relative overflow-hidden h-80 bg-stone-900 border border-stone-800">
-                 <img src={ex.imageUrl} alt={ex.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-60 group-hover:opacity-80" />
-                 <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-black to-transparent">
-                    {ex.isVirtual && <div className="inline-flex items-center gap-1 text-xs text-cyan-400 mb-2"><Monitor size={12} /> Virtual Tour Available</div>}
-                    <h3 className="font-serif text-2xl text-white group-hover:text-amber-500 transition-colors">{ex.title}</h3>
-                    <p className="text-stone-400 text-sm mt-1">{ex.date} • {ex.location}</p>
-                 </div>
-              </div>
-            ))}
-         </div>
-      </section>
-
-      {/* Featured Art */}
-      <section className="py-24 px-4 sm:px-8 max-w-7xl mx-auto border-t border-stone-900">
-        <div className="flex justify-between items-end mb-12">
-          <div>
-            <h2 className="font-serif text-4xl text-stone-200">Curator's Choice</h2>
-            <p className="text-stone-500 mt-2">Authentic Masterpieces</p>
+            <Link to="/gallery" className="text-amber-500 hover:text-white uppercase tracking-widest text-xs transition-colors">
+              View All Collections
+            </Link>
           </div>
-        </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-            <span className="ml-3 text-stone-400">Loading artworks...</span>
-          </div>
-        ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {artworks.slice(0, 3).map((art) => (
-              <Link key={art.id} to={`/artwork/${art.id}`} className="group cursor-pointer block">
-                <div className="relative aspect-[3/4] overflow-hidden bg-stone-900 mb-4">
-                  <img
-                    src={art.imageUrl}
-                    alt={art.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
-                  />
-                  <div className="absolute top-4 right-4 bg-stone-950/80 backdrop-blur px-3 py-1 text-xs text-white uppercase tracking-wider">
-                     {art.category}
-                  </div>
-                </div>
-                <h3 className="font-serif text-xl text-stone-300 group-hover:text-amber-500 transition-colors">{art.title}</h3>
-                <p className="text-stone-500 text-sm uppercase tracking-wide mt-1">{art.artistName}</p>
-                <p className="text-stone-400 mt-2 font-mono text-xs">{convertPrice(art.price)}</p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+            {/* Large Item */}
+            <Link to="/gallery" className="md:col-span-2 group relative overflow-hidden aspect-[16/9] md:aspect-auto">
+              <img
+                src={curatedCollections[0].image}
+                alt={curatedCollections[0].title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
+              />
+              <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-black/80 to-transparent">
+                <h4 className="font-serif text-2xl text-white">{curatedCollections[0].title}</h4>
+              </div>
+            </Link>
 
-      {/* Social Feed Simulation */}
-      <section className="py-20 bg-stone-900">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="font-serif text-3xl mb-8">Follow Our Journey</h2>
-          <div className="flex justify-center gap-8 mb-12 text-stone-500">
-            <a href={siteContent.socialLinks.instagram} target="_blank" rel="noopener noreferrer"><Instagram className="hover:text-amber-500 cursor-pointer transition-colors" /></a>
-            <a href={siteContent.socialLinks.facebook} target="_blank" rel="noopener noreferrer"><Facebook className="hover:text-amber-500 cursor-pointer transition-colors" /></a>
-            <a href={siteContent.socialLinks.twitter} target="_blank" rel="noopener noreferrer"><Twitter className="hover:text-amber-500 cursor-pointer transition-colors" /></a>
-            <a href={siteContent.socialLinks.pinterest} target="_blank" rel="noopener noreferrer"><span className="font-serif italic hover:text-amber-500 cursor-pointer">Pinterest</span></a>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             {[1,2,3,4].map(i => (
-               <div key={i} className="aspect-square bg-stone-800 flex items-center justify-center text-stone-700 text-xs overflow-hidden group relative cursor-pointer">
-                 <img src={`https://picsum.photos/400/400?random=${i+50}`} className="w-full h-full object-cover opacity-50 group-hover:opacity-80 transition-opacity" />
-                 <Instagram className="absolute text-white opacity-0 group-hover:opacity-100" />
-               </div>
-             ))}
+            {/* Tall Item */}
+            <Link to="/gallery" className="group relative overflow-hidden aspect-[3/4]">
+              <img
+                src={curatedCollections[1].image}
+                alt={curatedCollections[1].title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-black/80 to-transparent">
+                <h4 className="font-serif text-2xl text-white">{curatedCollections[1].title}</h4>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
+
+      {/* Editorial / Latest Essays */}
+      <section className="py-32 px-6 md:px-12 max-w-screen-2xl mx-auto">
+        <div className="text-center mb-20">
+          <h2 className="font-serif text-4xl text-white mb-4">Muraqqa Journal</h2>
+          <p className="text-stone-500 uppercase tracking-widest text-xs">Stories, Interviews, and Critical Essays</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-stone-800 pt-12">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="group cursor-pointer">
+              <div className="aspect-[3/2] overflow-hidden mb-6 bg-stone-900">
+                <img
+                  src={`https://picsum.photos/seed/${i * 55}/800/600`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-100"
+                  alt="Journal"
+                />
+              </div>
+              <p className="text-amber-500 text-xs uppercase tracking-widest mb-3">Interview</p>
+              <h3 className="font-serif text-2xl text-white mb-4 group-hover:underline decoration-stone-600 underline-offset-4">
+                The Resurgence of Miniature Art in the Digital Age
+              </h3>
+              <p className="text-stone-500 text-sm leading-relaxed mb-6">
+                We sat down with leading artists to discuss how traditional techniques are evolving...
+              </p>
+              <span className="text-white text-xs uppercase tracking-widest border-b border-stone-800 pb-1 group-hover:border-white transition-colors">Read Story</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
     </div>
   );
 };

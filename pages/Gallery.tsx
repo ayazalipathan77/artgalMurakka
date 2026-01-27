@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGallery } from '../context/GalleryContext';
-import { Filter, Search, Loader2, X } from 'lucide-react';
+import { Filter, Search, Loader2, X, ChevronDown, Check } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCurrency } from '../App';
 import { artistApi } from '../services/api';
@@ -25,204 +25,183 @@ export const Gallery: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedMedium, setSelectedMedium] = useState<string>('All');
 
-  // Selected Artist State
-  const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
-  const [loadingArtist, setLoadingArtist] = useState(false);
-
-  // Fetch Artist Details if ID is present
-  useEffect(() => {
-    if (artistIdParam) {
-      const loadArtist = async () => {
-        setLoadingArtist(true);
-        try {
-          const { artist } = await artistApi.getById(artistIdParam);
-          // Transform to frontend type if needed, or stick to simple display
-          setSelectedArtist({
-            id: artist.id,
-            name: artist.user.fullName,
-            bio: artist.bio || '',
-            imageUrl: artist.imageUrl || '',
-            specialty: artist.originCity || ''
-          });
-        } catch (err) {
-          console.error('Failed to load artist:', err);
-        } finally {
-          setLoadingArtist(false);
-        }
-      };
-      loadArtist();
-    } else {
-      setSelectedArtist(null);
-    }
-  }, [artistIdParam]);
+  // Clean filter arrays
+  const categories = ['All', ...availableCategories];
+  const mediums = ['All', ...availableMediums];
 
   // Fetch artworks when filters change
   useEffect(() => {
     const filters: any = {};
+    if (selectedCategory !== 'All') filters.category = selectedCategory;
+    if (selectedMedium !== 'All') filters.medium = selectedMedium;
+    if (searchTerm) filters.search = searchTerm;
+    if (artistIdParam) filters.artistId = artistIdParam;
 
-    if (selectedCategory !== 'All') {
-      filters.category = selectedCategory;
-    }
-
-    if (selectedMedium !== 'All') {
-      filters.medium = selectedMedium;
-    }
-
-    if (searchTerm) {
-      filters.search = searchTerm;
-    }
-
-    if (artistIdParam) {
-      filters.artistId = artistIdParam;
-    }
-
-    // Debounce search
     const timeoutId = setTimeout(() => {
       fetchArtworks(filters);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [selectedCategory, selectedMedium, searchTerm, fetchArtworks, artistIdParam]);
+  }, [selectedCategory, selectedMedium, searchTerm, artistIdParam, fetchArtworks]);
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedCategory('All');
     setSelectedMedium('All');
-    if (artistIdParam) {
-      setSearchParams({}); // Clear URL params
-    }
+    if (artistIdParam) setSearchParams({});
   };
 
-  // Build category list from API + default "All"
-  const categories = ['All', ...availableCategories];
-  const mediums = ['All', ...availableMediums.map(m => {
-    // Extract short name from medium (e.g., "Oil on Canvas" -> "Oil")
-    if (m.includes('Oil')) return 'Oil';
-    if (m.includes('Acrylic')) return 'Acrylic';
-    if (m.includes('Silver')) return 'Silver Leaf';
-    if (m.includes('Gouache')) return 'Gouache';
-    if (m.includes('Mixed')) return 'Mixed Media';
-    return m;
-  })].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
-
   return (
-    <div className="pt-32 min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="pt-32 min-h-screen max-w-screen-2xl mx-auto px-6 md:px-12">
 
-      {/* Artist Profile Hero Section Removed - Redirects to /artists/:id now */}
-
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+      {/* Minimal Header & Controls */}
+      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8 border-b border-stone-800 pb-8">
         <div>
-          <h1 className="font-serif text-5xl text-stone-100 mb-2">The Collection</h1>
-          <p className="text-stone-500 text-sm tracking-wide uppercase">Authentic works from verified artists.</p>
+          <h1 className="font-serif text-5xl md:text-7xl text-white mb-4">Collection</h1>
+          <p className="text-stone-500 uppercase tracking-widest text-xs">
+            {isLoading ? 'Loading...' : `${artworks.length} Works Available`}
+          </p>
         </div>
 
         <div className="flex gap-4 w-full md:w-auto items-center">
-          <div className="relative flex-1 md:w-80 border-b border-stone-700 focus-within:border-amber-500 transition-colors">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
+          {/* Search */}
+          <div className="relative flex-1 md:w-64 group border-b border-stone-800 focus-within:border-amber-500 transition-colors">
+            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors" size={16} />
             <input
               type="text"
-              placeholder="SEARCH MASTERPIECES..."
+              placeholder="SEARCH..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent pl-8 pr-4 py-3 text-sm focus:outline-none text-white placeholder:text-stone-600 uppercase tracking-widest"
+              className="w-full bg-transparent pl-8 pr-4 py-2 text-xs focus:outline-none text-white placeholder:text-stone-600 uppercase tracking-widest"
             />
           </div>
+
+          {/* Filter Toggle */}
           <button
-            onClick={() => setFilterOpen(!filterOpen)}
-            className={`p-3 border border-stone-700 hover:border-amber-500 transition-colors ${filterOpen ? 'bg-stone-800' : ''}`}
+            onClick={() => setFilterOpen(true)}
+            className="flex items-center gap-2 text-stone-400 hover:text-white uppercase tracking-widest text-xs border border-stone-800 px-4 py-2 transition-all hover:border-stone-600"
           >
-            <Filter size={20} className={filterOpen ? 'text-amber-500' : 'text-stone-400'} />
+            <Filter size={14} /> Filters
           </button>
         </div>
       </div>
 
-      <div className="flex gap-12 relative">
-        {/* Sidebar Filters */}
-        <aside className={`w-64 flex-shrink-0 space-y-10 transition-all duration-300 ${filterOpen ? 'opacity-100 translate-x-0' : 'absolute -translate-x-full opacity-0 pointer-events-none'}`}>
-          <div>
-            <h3 className="text-stone-200 font-serif text-xl mb-6 italic">Category</h3>
-            <div className="space-y-3">
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`block w-full text-left text-xs uppercase tracking-widest transition-colors ${selectedCategory === cat ? 'text-amber-500 font-bold' : 'text-stone-500 hover:text-stone-300'}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+      {/* Main Grid */}
+      <div className="min-h-[60vh]">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+            <p className="text-stone-500 text-xs uppercase tracking-widest">Curating Collection...</p>
           </div>
-
-          <div>
-            <h3 className="text-stone-200 font-serif text-xl mb-6 italic">Medium</h3>
-            <div className="space-y-3">
-              {mediums.map(med => (
-                <button
-                  key={med}
-                  onClick={() => setSelectedMedium(med)}
-                  className={`block w-full text-left text-xs uppercase tracking-widest transition-colors ${selectedMedium === med ? 'text-amber-500 font-bold' : 'text-stone-500 hover:text-stone-300'}`}
-                >
-                  {med}
-                </button>
-              ))}
-            </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-red-500 mb-4 font-serif text-xl">{error}</p>
+            <button onClick={() => fetchArtworks()} className="text-stone-400 hover:text-white underline text-xs uppercase tracking-widest">Try Again</button>
           </div>
-
-          <div>
-            <h3 className="text-stone-200 font-serif text-xl mb-6 italic">Price</h3>
-            {/* Simple Range Slider Placeholder */}
-            <input type="range" className="w-full h-1 bg-stone-800 appearance-none cursor-pointer" />
+        ) : artworks.length === 0 ? (
+          <div className="text-center py-32 border border-dashed border-stone-800">
+            <p className="text-white font-serif text-2xl mb-2">No artworks found</p>
+            <p className="text-stone-500 text-sm mb-6">Try adjusting your search or filters.</p>
+            <button onClick={clearFilters} className="text-amber-500 hover:text-amber-400 text-xs uppercase tracking-widest border-b border-amber-500/50 pb-1">Clear All Filters</button>
           </div>
-        </aside>
-
-        {/* Grid */}
-        <div className="flex-1 min-h-[500px]">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-              <span className="ml-3 text-stone-400">Loading artworks...</span>
-            </div>
-          ) : error ? (
-            <div className="text-center py-20 text-red-500 border border-dashed border-red-800">
-              <p className="font-serif text-2xl mb-2">Error loading artworks</p>
-              <p className="text-sm text-stone-500 mb-4">{error}</p>
-              <button onClick={() => fetchArtworks()} className="text-amber-500 text-sm hover:underline">Try Again</button>
-            </div>
-          ) : artworks.length === 0 ? (
-            <div className="text-center py-20 text-stone-500 border border-dashed border-stone-800">
-              <p className="font-serif text-2xl mb-2">No artworks found</p>
-              <button onClick={clearFilters} className="text-amber-500 text-sm hover:underline">Clear Filters</button>
-            </div>
-          ) : (
-            <div className={`grid grid-cols-1 md:grid-cols-2 ${!filterOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8`}>
-              {artworks.map((art) => (
-                <Link key={art.id} to={`/artwork/${art.id}`} className="group block bg-stone-900/50 hover:bg-stone-900 transition-colors duration-500">
-                  <div className="aspect-[4/5] overflow-hidden relative">
-                    <img
-                      src={art.imageUrl}
-                      alt={art.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    {art.inStock ? null : (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-white border border-white px-4 py-2 uppercase tracking-widest text-xs">Sold Out</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    <h3 className="font-serif text-xl text-stone-200 group-hover:text-amber-500 truncate transition-colors">{art.title}</h3>
-                    <p className="text-stone-500 text-xs uppercase tracking-widest mt-2 mb-4">{art.artistName}</p>
-                    <div className="flex justify-between items-center border-t border-stone-800 pt-4">
-                      <span className="text-stone-300 font-mono text-sm">{convertPrice(art.price)}</span>
-                      <span className="text-[10px] text-stone-500 uppercase">{art.year}</span>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
+            {artworks.map((art) => (
+              <Link key={art.id} to={`/artwork/${art.id}`} className="group block">
+                <div className="relative aspect-[3/4] overflow-hidden bg-stone-900 mb-6">
+                  <img
+                    src={art.imageUrl}
+                    alt={art.title}
+                    className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110 opacity-90 group-hover:opacity-100"
+                  />
+                  {!art.inStock && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="text-white border border-white px-3 py-1 uppercase tracking-widest text-[10px]">Sold</span>
                     </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <span className="text-white text-xs uppercase tracking-widest border-b border-white pb-1">View Detail</span>
                   </div>
-                </Link>
-              ))}
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="font-serif text-lg text-white group-hover:text-amber-500 transition-colors truncate pr-4">{art.title}</h3>
+                  <p className="text-stone-500 text-xs uppercase tracking-widest">{art.artistName}</p>
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-stone-400 text-xs font-mono">{convertPrice(art.price)}</span>
+                    <span className="text-stone-600 text-[10px] uppercase">{art.year}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Slide-over Filter Panel */}
+      <div className={`fixed inset-0 z-50 pointer-events-none transition-visibility duration-500 ${filterOpen ? 'pointer-events-auto' : ''}`}>
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${filterOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setFilterOpen(false)}
+        />
+
+        {/* Sidebar */}
+        <div className={`absolute right-0 top-0 bottom-0 w-full max-w-sm bg-stone-900 border-l border-stone-800 shadow-2xl transition-transform duration-500 ${filterOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="p-8 h-full flex flex-col">
+            <div className="flex justify-between items-center mb-12">
+              <h2 className="font-serif text-3xl text-white">Filters</h2>
+              <button onClick={() => setFilterOpen(false)} className="text-stone-500 hover:text-white">
+                <X size={24} />
+              </button>
             </div>
-          )}
+
+            <div className="flex-1 overflow-y-auto space-y-10 pr-2">
+
+              {/* Categories */}
+              <div>
+                <h3 className="text-amber-500 text-xs uppercase tracking-widest mb-4 font-bold">Category</h3>
+                <div className="space-y-2">
+                  {categories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`flex items-center justify-between w-full text-left py-2 px-3 transition-colors ${selectedCategory === cat ? 'bg-stone-800 text-white' : 'text-stone-400 hover:text-stone-200'}`}
+                    >
+                      <span className="text-sm">{cat}</span>
+                      {selectedCategory === cat && <Check size={14} className="text-amber-500" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mediums */}
+              <div>
+                <h3 className="text-amber-500 text-xs uppercase tracking-widest mb-4 font-bold">Medium</h3>
+                <div className="space-y-2">
+                  {mediums.map(med => (
+                    <button
+                      key={med}
+                      onClick={() => setSelectedMedium(med)}
+                      className={`flex items-center justify-between w-full text-left py-2 px-3 transition-colors ${selectedMedium === med ? 'bg-stone-800 text-white' : 'text-stone-400 hover:text-stone-200'}`}
+                    >
+                      <span className="text-sm truncate pr-4">{med}</span>
+                      {selectedMedium === med && <Check size={14} className="text-amber-500" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t border-stone-800">
+              <button
+                onClick={clearFilters}
+                className="w-full py-4 border border-stone-700 text-stone-300 uppercase tracking-widest text-xs hover:bg-stone-800 hover:text-white transition-colors"
+              >
+                Reset All Filters
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
