@@ -36,6 +36,14 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  // Auth fields
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  isEmailVerified   Boolean   @default(false)
+  verificationToken String?
+
+
+
   artistProfile Artist?
   orders        Order[]
   reviews       Review[]

@@ -6,6 +6,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { StatusCodes } from 'http-status-codes';
 import { env } from './config/env';
+import { apiLimiter } from './middleware/rateLimiter';
 
 // Import Routes
 import authRoutes from './routes/auth.routes';
@@ -31,6 +32,9 @@ app.use(cookieParser());
 app.use(compression());
 app.use(helmet());
 app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
+
+// Rate Limiting
+app.use('/api', apiLimiter);
 
 // CORS Configuration
 app.use(cors({
