@@ -19,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // Handle scroll effect
   useEffect(() => {
@@ -98,9 +99,45 @@ export const Navbar: React.FC<NavbarProps> = () => {
             </Link>
 
             {user ? (
-              <Link to="/profile" className="hidden md:block text-stone-400 hover:text-white transition-colors">
-                <User size={18} />
-              </Link>
+              <div className="relative hidden md:block">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  onBlur={() => setTimeout(() => setUserMenuOpen(false), 200)}
+                  className="text-stone-400 hover:text-white transition-colors focus:outline-none"
+                >
+                  <User size={18} />
+                </button>
+
+                {/* Dropdown Menu */}
+                <div
+                  className={`absolute right-0 top-full mt-4 w-48 bg-stone-900 border border-stone-800 rounded-sm shadow-xl transition-all duration-300 origin-top-right ${userMenuOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
+                >
+                  <div className="py-2">
+                    {/* Admin Link */}
+                    {user.role === 'ADMIN' && (
+                      <Link
+                        to="/admin"
+                        className="block px-4 py-2 text-sm text-amber-500 hover:bg-stone-800 transition-colors uppercase tracking-wider"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
+
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-stone-300 hover:text-white hover:bg-stone-800 transition-colors"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-stone-800 transition-colors border-t border-stone-800 mt-1"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
               <Link to="/auth" className="hidden md:block text-xs uppercase tracking-widest text-stone-400 hover:text-white">
                 Log In
@@ -135,6 +172,9 @@ export const Navbar: React.FC<NavbarProps> = () => {
           <div className="w-12 h-px bg-stone-800 my-4"></div>
           {user ? (
             <div className="flex flex-col items-center gap-6">
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" className="text-sm uppercase tracking-widest text-amber-500 hover:text-amber-400 font-bold">Admin Dashboard</Link>
+              )}
               <Link to="/profile" className="text-sm uppercase tracking-widest text-stone-400 hover:text-white">Profile</Link>
               <button onClick={handleLogout} className="text-sm uppercase tracking-widest text-red-500 hover:text-red-400">Sign Out</button>
             </div>
